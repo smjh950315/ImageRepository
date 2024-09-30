@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cyh.Net.Data\Cyh.Net.Data.csproj" />
+    <ProjectReference Include="..\Cyh.Net\Cyh.Net.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataModel\" />
+  </ItemGroup>
+
+</Project>
