@@ -1,9 +1,7 @@
-﻿using Cyh.Net;
-using Cyh.Net.Data.Predicate;
+﻿using ImgRepo.Model.ApiModel;
 using ImgRepo.Model.ViewModel;
 using ImgRepo.Service;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq.Expressions;
 
 namespace ImgRepo.Web.Controllers
 {
@@ -14,31 +12,42 @@ namespace ImgRepo.Web.Controllers
         private readonly IImageService _imageService;
         public ApiQueryController(IImageService imageService)
         {
-            _imageService = imageService;
+            this._imageService = imageService;
         }
 
         [HttpPost]
         [Route("thumbnails")]
         public IEnumerable<ImageThumbView> GetThumbnails(QueryModel? queryModel)
         {
-            return _imageService.GetImageThumbViews(queryModel);
+            return this._imageService.GetImageThumbViews(queryModel);
         }
 
         [HttpGet]
-        [Route("file/{id}")]
-        public IActionResult GetImage(long id)
+        [Route("image/thumb/{id}")]
+        public ApiFileModel? GetThumbnail(long id)
         {
-            var fid = _imageService.GetImageFileId(id);
-            if(fid == 0)
-            {
-                return this.NotFound();
-            }
-            var bytes = _imageService.GetFileBytes(fid);
-            if (bytes.IsNullOrEmpty())
-            {
-                return this.NotFound();
-            }
-            return this.File(bytes, "image/jpeg");
+            return this._imageService.GetThumbnail(id);
+        }
+
+        [HttpGet]
+        [Route("image/file/{id}")]
+        public ApiFileModel? GetImage(long id)
+        {
+            return this._imageService.GetFullImage(id);
+        }
+
+        [HttpGet]
+        [Route("tags/{imgId}")]
+        public IEnumerable<BasicInfo> GetTags(long imgId)
+        {
+            return this._imageService.GetTags(imgId);
+        }
+
+        [HttpGet]
+        [Route("categories/{imgId}")]
+        public IEnumerable<BasicInfo> GetCategories(long imgId)
+        {
+            return this._imageService.GetCategories(imgId);
         }
     }
 }

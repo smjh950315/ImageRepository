@@ -1,5 +1,5 @@
 ﻿using ImgRepo.Model.Interface;
-
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities
 {
     public class AlbumInformation : IBasicEntityInformation

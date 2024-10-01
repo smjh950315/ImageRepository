@@ -1,3 +1,4 @@
+using ImgRepo.Model.ApiModel;
 using ImgRepo.Model.ViewModel;
 using ImgRepo.Service;
 using ImgRepo.Web.Models;
@@ -12,51 +13,41 @@ namespace ImgRepo.Web.Controllers
         private readonly IImageService _imageService;
         public HomeController(IImageService imageService, ILogger<HomeController> logger)
         {
-            _imageService = imageService;
-            _logger = logger;
+            this._imageService = imageService;
+            this._logger = logger;
         }
 
         public IActionResult Index()
         {
-            return View(new List<ImageAdvanceInformation>());
+            return this.View();
         }
 
         public IActionResult Privacy()
         {
-            return View();
+            return this.View();
         }
 
         [HttpGet]
-        public IActionResult GetImage(long imgFileId)
+        public ApiFileModel? GetImage(long imgId)
         {
-            var bytes = _imageService.GetFileBytes(imgFileId);
-            return File(bytes, "image/jpeg");
+            return this._imageService.GetFullImage(imgId);
         }
 
-        public IActionResult Upload()
+        public IActionResult Upload(WebFileModel uploadModel)
         {
-            return View(new ImageUploadModel());
-        }
-
-        [HttpPost]
-        public IActionResult Upload(ImageUploadModel imageBaseInfo)
-        {
-            if (imageBaseInfo.ImageFile == null)
+            if (uploadModel == null)
             {
-                ModelState.AddModelError("UploadBytes", "Please upload an image");
-                return View(imageBaseInfo);
+                this.ModelState.AddModelError("UploadBytes", "Please upload an image");
+                return this.View("Index");
             }
-            var str = imageBaseInfo.ImageFile.OpenReadStream();
-            var buffer = new byte[str.Length];
-            str.Read(buffer, 0, buffer.Length);
-            _imageService.SaveImage(imageBaseInfo, buffer);
-            return RedirectToAction("Index");
+            this._imageService.UploadImage(uploadModel);
+            return this.Ok();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return this.View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? this.HttpContext.TraceIdentifier });
         }
     }
 }

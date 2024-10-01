@@ -6,21 +6,9 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
-@using ImgRepo.Model.ViewModel
-@model IEnumerable<ImageAdvanceInformation>
 
 <div class="container">
     <div class="row">
-        @foreach (var image in Model)
-        {
-            <div class="col-md-4">
-                <div class="card mb-4 shadow-sm">
-                    <img class="card-img-top" src="@Url.Action("GetImage",new {imgFileId = image.ImageFileId})" alt="@image.Name">
-                    <div class="card-body">
-                        <p class="card-text">@image.Name</p>
-                    </div>
-                </div>
-            </div>
-        }
+
     </div>
 </div>

@@ -1,5 +1,3 @@
-using System.Data.Common;
-
 namespace ImgRepo.Web
 {
     public class Program
@@ -12,7 +10,8 @@ namespace ImgRepo.Web
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => {
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
                     webBuilder.UseStartup<Startup>();
                 });
         }

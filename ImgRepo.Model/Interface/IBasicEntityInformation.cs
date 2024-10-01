@@ -1,5 +1,8 @@
 ﻿namespace ImgRepo.Model.Interface
 {
+    /// <summary>
+    /// image, author, album
+    /// </summary>
     public interface IBasicEntityInformation
     {
         long Id { get; set; }

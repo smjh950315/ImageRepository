@@ -1,23 +1,18 @@
 ﻿using Cyh.Net;
 using Cyh.Net.Data;
 using Cyh.Net.Data.Predicate;
+using ImgRepo.Model.ApiModel;
 using ImgRepo.Model.Entities;
+using ImgRepo.Model.Interface;
 using ImgRepo.Model.ViewModel;
+using ImgRepo.Service.Dto;
+using AttrTypeEnum = ImgRepo.Model.Enums.AttributeType;
 
 namespace ImgRepo.Service
 {
     class ImageService : IImageService
     {
-        class ObjTypeEnum
-        {
-            public const long Image = 1;
-            public const long Album = 2;
-        }
-        class AttTypeEnum
-        {
-            public const long Tag = 1;
-            public const long Category = 2;
-        }
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
         class MetaRecord
         {
             public long ImgId { get; set; }
@@ -28,42 +23,60 @@ namespace ImgRepo.Service
             public DateTime Updated { get; set; }
             public long FileId { get; set; }
         }
+        class MetaImageFile
+        {
+            public long ImageId { get; set; }
+            public long FileId { get; set; }
+            public string Format { get; set; }
+            public byte[]? Thumbnail { get; set; }
+            public byte[]? Data { get; set; }
+        }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+        readonly IDataSource m_dataSource;
+        readonly IQueryable<ImageRecord> m_imageRecords;
+        readonly IQueryable<AlbumRecord> m_albumRecords;
+        readonly IQueryable<AlbumInformation> m_albumInformations;
+        readonly IQueryable<ImageInformation> m_imageInformations;
+        readonly IQueryable<TagInformation> m_tagInformations;
+        readonly IQueryable<CategoryInformation> m_categoryInformations;
+        readonly IQueryable<ImageFileData> m_imageFileData;
 
-        IDataSource m_dataSource;
-        IQueryable<BindingRecord> m_bindingRecords;
-        IQueryable<AlbumInformation> m_albumInformations;
-        IQueryable<ImageInformation> m_imageInformations;
-        IQueryable<TagInformation> m_tagInformations;
-        IQueryable<CategoryInformation> m_categoryInformations;
-        IQueryable<ImageFileData> m_imageFileData;
 
-        IQueryable<BindingRecord> _imageRecordQueryable => this.m_bindingRecords.Where(r => r.ObjType == ObjTypeEnum.Image);
-        IQueryable<BindingRecord> _albumRecordQueryable => this.m_bindingRecords.Where(r => r.ObjType == ObjTypeEnum.Album);
         IQueryable<BasicDetails> _tagDetails => this.m_tagInformations.Select(BasicDetails.GetExpression<TagInformation>());
+
         IQueryable<BasicDetails> _catDetails => this.m_categoryInformations.Select(BasicDetails.GetExpression<CategoryInformation>());
 
-        IQueryable<MetaRecord> GetMetaQueryable()
+        IQueryable<MetaImageFile> _imageFileDatas => this.m_imageInformations.Join(this.m_imageFileData, i => i.FileId, f => f.Id, (i, f) => new MetaImageFile
+        {
+            ImageId = i.Id,
+            FileId = i.FileId,
+            Format = f.Format,
+            Thumbnail = f.Thumbnail,
+            Data = f.Data,
+        });
+
+        IQueryable<MetaRecord> GetImageMetaQueryable()
         {
             var dataTags = this.m_imageInformations
-                .Join(_imageRecordQueryable.Where(r => r.AttType == AttTypeEnum.Tag),
-                i => i.Id, r => r.ObjId, (i, r) => new
+                .Join(this.m_imageRecords.Where(r => r.AttrType == AttrTypeEnum.Tag),
+                i => i.Id, r => r.ObjectId, (i, r) => new
                 {
                     ImgId = i.Id,
                     ImgName = i.Name,
-                    TagId = r.AttId,
-                }).Join(m_tagInformations, ir => ir.TagId, t => t.Id, (ir, t) => new
+                    TagId = r.AttrId,
+                }).Join(this.m_tagInformations, ir => ir.TagId, t => t.Id, (ir, t) => new
                 {
                     ImgId = ir.ImgId,
                     TagName = t.Name,
                 });
             var dataCats = this.m_imageInformations
-                .Join(_imageRecordQueryable.Where(r => r.AttType == AttTypeEnum.Category),
-                i => i.Id, r => r.ObjId, (i, r) => new
+                .Join(this.m_imageRecords.Where(r => r.AttrType == AttrTypeEnum.Category),
+                i => i.Id, r => r.ObjectId, (i, r) => new
                 {
                     ImgId = i.Id,
                     ImgName = i.Name,
-                    CatId = r.AttId,
-                }).Join(m_categoryInformations, ir => ir.CatId, c => c.Id, (ir, c) => new
+                    CatId = r.AttrId,
+                }).Join(this.m_categoryInformations, ir => ir.CatId, c => c.Id, (ir, c) => new
                 {
                     ImgId = ir.ImgId,
                     CatName = c.Name,
@@ -74,7 +87,7 @@ namespace ImgRepo.Service
                 ImgId = dt.ImgId,
                 TagName = dt.TagName,
                 CatName = dc.CatName,
-            }).Join(m_imageInformations, d => d.ImgId, i => i.Id, (d, i) => new MetaRecord
+            }).Join(this.m_imageInformations, d => d.ImgId, i => i.Id, (d, i) => new MetaRecord
             {
                 ImgId = d.ImgId,
                 ImgName = i.Name,
@@ -86,19 +99,31 @@ namespace ImgRepo.Service
             });
         }
 
-        IEnumerable<string> GetTagNames(long objType, long objId)
+        static IEnumerable<BasicInfo> GetRelatedAttributeInfo<R, T>(IQueryable<R> recQueryable, IQueryable<T> attrQueryable, long objId, long attrType) where R : IBasicEntityRecord where T : IBasicEntityInformation
         {
-            return this.m_bindingRecords.Where(r => r.ObjId == objId && r.ObjType == objType && r.AttType == AttTypeEnum.Tag).Join(this.m_tagInformations, r => r.AttId, t => t.Id, (r, t) => t.Name).Distinct().ToList();
+            return recQueryable.Where(r => r.ObjectId == objId && r.AttrType == attrType)
+                .Join(attrQueryable, r => r.AttrId, a => a.Id, (r, a) => new BasicInfo
+                {
+                    Id = r.ObjectId,
+                    Name = a.Name,
+                }).Distinct().ToList();
         }
-        IEnumerable<string> GetCatNames(long objType, long objId)
+
+        static IEnumerable<BasicInfo> GetTagInfos<R>(IQueryable<R> recQueryable, IQueryable<TagInformation> tagInformation, long objId) where R : IBasicEntityRecord
         {
-            return this.m_bindingRecords.Where(r => r.ObjId == objId && r.ObjType == objType && r.AttType == AttTypeEnum.Category).Join(this.m_categoryInformations, r => r.AttId, c => c.Id, (r, c) => c.Name).Distinct().ToList();
+            return GetRelatedAttributeInfo(recQueryable, tagInformation, objId, AttrTypeEnum.Tag);
+        }
+
+        static IEnumerable<BasicInfo> GetCatInfos<R>(IQueryable<R> recQueryable, IQueryable<CategoryInformation> categoryInformation, long objId) where R : IBasicEntityRecord
+        {
+            return GetRelatedAttributeInfo(recQueryable, categoryInformation, objId, AttrTypeEnum.Category);
         }
 
         public ImageService(IDataSource dataSource)
         {
             this.m_dataSource = dataSource;
-            this.m_bindingRecords = dataSource.GetQueryable<BindingRecord>();
+            this.m_imageRecords = dataSource.GetQueryable<ImageRecord>();
+            this.m_albumRecords = dataSource.GetQueryable<AlbumRecord>();
             this.m_imageInformations = dataSource.GetQueryable<ImageInformation>();
             this.m_tagInformations = dataSource.GetQueryable<TagInformation>();
             this.m_categoryInformations = dataSource.GetQueryable<CategoryInformation>();
@@ -106,47 +131,44 @@ namespace ImgRepo.Service
             this.m_imageFileData = dataSource.GetQueryable<ImageFileData>();
         }
 
-        public ArtworkDetails? GetAlbumDetails(long id)
+        public BasicDetails? GetAlbumDetails(long id)
         {
-            var album = this.m_albumInformations.FirstOrDefault(x => x.Id == id);
+            AlbumInformation? album = this.m_albumInformations.FirstOrDefault(x => x.Id == id);
             if (album == null) return null;
 
-            IQueryable<BindingRecord> records = this._albumRecordQueryable.Where(r => r.ObjId == id);
+            IQueryable<AlbumRecord> records = this.m_albumRecords.Where(r => r.ObjectId == id);
 
-            return new ArtworkDetails
+            return new BasicDetails
             {
                 Id = id,
                 Name = album.Name,
                 Description = album.Description,
-                Tags = this.GetTagNames(ObjTypeEnum.Image, id),
-                Categories = this.GetCatNames(ObjTypeEnum.Image, id),
             };
+        }
+
+        public BasicDetails? GetImageDetails(long id)
+        {
+            ImageInformation? img = this.m_imageInformations.FirstOrDefault(x => x.Id == id);
+            if (img == null) return null;
+
+
+            return new BasicDetails
+            {
+                Id = id,
+                Name = img.Name,
+                Description = img.Description,
+            };
+        }
+
+
+        public BasicDetails? GetTagDetails(long id)
+        {
+            return this._tagDetails.FirstOrDefault(t => t.Id == id);
         }
 
         public BasicDetails? GetCategoryDetails(long id)
         {
             return this._catDetails.FirstOrDefault(c => c.Id == id);
-        }
-
-        public byte[] GetFileBytes(long fileId)
-        {
-            return this.m_imageFileData.FirstOrDefault(f => f.Id == fileId)?.Data ?? new byte[0];
-        }
-
-        public ArtworkDetails? GetImageDetails(long id)
-        {
-            ImageInformation? img = this.m_imageInformations.FirstOrDefault(x => x.Id == id);
-            if (img == null) return null;
-            IQueryable<BindingRecord> records = this._imageRecordQueryable.Where(r => r.ObjId == id);
-
-            return new ArtworkDetails
-            {
-                Id = id,
-                Name = img.Name,
-                Description = img.Description,
-                Tags = this.GetTagNames(ObjTypeEnum.Image, id),
-                Categories = this.GetCatNames(ObjTypeEnum.Image, id),
-            };
         }
 
         public IEnumerable<ImageThumbView> GetImageThumbViews(QueryModel? queryModel)
@@ -184,7 +206,7 @@ namespace ImgRepo.Service
                 }
             }
 
-            return this.GetMetaQueryable().Where(holder.GetPredicate()).Select(x => new ImageThumbView
+            return this.GetImageMetaQueryable().Where(holder.GetPredicate()).Select(x => new ImageThumbView
             {
                 Id = x.ImgId,
                 Name = x.ImgName,
@@ -192,26 +214,73 @@ namespace ImgRepo.Service
             });
         }
 
-        public BasicDetails? GetTagDetails(long id)
+        public ApiFileModel? GetFileBytes(long fileId)
         {
-            return this._tagDetails.FirstOrDefault(t => t.Id == id);
+            ImageFileData? fileData = this.m_imageFileData.FirstOrDefault(f => f.Id == fileId);
+            if (fileData == null || fileData.Data == null || fileData.Thumbnail == null)
+            {
+                return null;
+            }
+            return new ApiFileModel
+            {
+                Format = fileData.Format,
+                Base64 = Convert.ToBase64String(fileData.Data),
+            };
         }
 
-        public void UpdateImageTag(long imageId, string tagName, bool _delete)
+        public ApiFileModel? GetFullImage(long imgId)
         {
-            var imgInfo = this.m_imageInformations.FirstOrDefault(i => i.Id == imageId);
-            if (imgInfo == null) return;
+            MetaImageFile? fileData = this._imageFileDatas.FirstOrDefault(f => f.ImageId == imgId);
+            if (fileData == null || fileData.Data == null)
+            {
+                return null;
+            }
+            return new ApiFileModel
+            {
+                Format = fileData.Format,
+                Base64 = Convert.ToBase64String(fileData.Data),
+            };
+        }
 
-            var tagInfo = this.m_tagInformations.FirstOrDefault(t => t.Name == tagName);
+        public ApiFileModel? GetThumbnail(long imgId)
+        {
+            MetaImageFile? fileData = this._imageFileDatas.FirstOrDefault(f => f.ImageId == imgId);
+            if (fileData == null || fileData.Thumbnail == null)
+            {
+                return null;
+            }
+            return new ApiFileModel
+            {
+                Format = fileData.Format,
+                Base64 = Convert.ToBase64String(fileData.Thumbnail),
+            };
+        }
+
+        public IEnumerable<BasicInfo> GetTags(long imgId)
+        {
+            return GetTagInfos(this.m_imageRecords, m_tagInformations, imgId);
+        }
+        public IEnumerable<BasicInfo> GetCategories(long imgId)
+        {
+            return GetCatInfos(this.m_imageRecords, m_categoryInformations, imgId);
+        }
+
+        public long UpdateImageTag(long imageId, string tagName, bool _delete)
+        {
+            ImageInformation? imgInfo = this.m_imageInformations.FirstOrDefault(i => i.Id == imageId);
+            if (imgInfo == null) return 0;
+
+            TagInformation? tagInfo = this.m_tagInformations.FirstOrDefault(t => t.Name == tagName);
             if (_delete)
             {
-                if (tagInfo == null) return;
-                var record = this._imageRecordQueryable.Where(r => r.AttType == AttTypeEnum.Tag && r.AttId == tagInfo.Id).FirstOrDefault(r => r.ObjId == imageId);
+                if (tagInfo == null) return 0;
+                ImageRecord? record = this.m_imageRecords.Where(r => r.AttrType == AttrTypeEnum.Tag && r.AttrId == tagInfo.Id).FirstOrDefault(r => r.ObjectId == imageId);
                 if (record != null)
                 {
-                    this.m_dataSource.GetWriter<BindingRecord>().Remove(record);
+                    this.m_dataSource.GetWriter<ImageRecord>().Remove(record);
                     this.m_dataSource.Save();
                 }
+                return 0;
             }
             else
             {
@@ -221,19 +290,19 @@ namespace ImgRepo.Service
                     this.m_dataSource.GetWriter<TagInformation>().Add(tagInfo);
                     this.m_dataSource.Save();
                 }
-                var record = this._imageRecordQueryable.Where(r => r.AttType == AttTypeEnum.Tag && r.AttId == tagInfo.Id).FirstOrDefault(r => r.ObjId == imageId);
+                ImageRecord? record = this.m_imageRecords.Where(r => r.AttrType == AttrTypeEnum.Tag && r.AttrId == tagInfo.Id).FirstOrDefault(r => r.ObjectId == imageId);
                 if (record != null)
                 {
-                    return;
+                    return record.AttrId;
                 }
-                this.m_dataSource.GetWriter<BindingRecord>().Add(new BindingRecord
+                this.m_dataSource.GetWriter<ImageRecord>().Add(new ImageRecord
                 {
-                    ObjType = ObjTypeEnum.Image,
-                    ObjId = imageId,
-                    AttType = AttTypeEnum.Tag,
-                    AttId = tagInfo.Id,
+                    ObjectId = imageId,
+                    AttrType = AttrTypeEnum.Tag,
+                    AttrId = tagInfo.Id,
                 });
                 this.m_dataSource.Save();
+                return tagInfo.Id;
             }
         }
 
@@ -242,22 +311,37 @@ namespace ImgRepo.Service
             return this.m_imageInformations.FirstOrDefault(i => i.Id == imageId)?.FileId ?? 0;
         }
 
-        public void SaveImageFile(BasicDetails? imgDetails, byte[]? data)
+        public long UploadImage(NewImageDto? imageDto)
         {
-            if(imgDetails == null || data==null || data.Length==0) return;
-            var newFileData=new ImageFileData
+            if (imageDto == null) return 0;
+            ImageFileData fileData = new ImageFileData
             {
-                Data = data
+                Format = imageDto.Format,
+                Data = imageDto.Data,
+                FileName = imageDto.FileName,
+                Thumbnail = imageDto.ThumbData,
             };
-            m_dataSource.GetWriter<ImageFileData>().Add(newFileData);
-            m_dataSource.Save();
-            m_dataSource.GetWriter<ImageInformation>().Add(new ImageInformation
+            this.m_dataSource.GetWriter<ImageFileData>().Add(fileData);
+            this.m_dataSource.Save();
+            ImageInformation imgInfo = new ImageInformation
             {
-                Name = imgDetails.Name,
-                Description = imgDetails.Description,
-                FileId = newFileData.Id,
-            });
-            m_dataSource.Save();
+                Name = imageDto.ImageName,
+                Description = imageDto.Description,
+                Created = DateTime.Now,
+                Updated = DateTime.Now,
+                FileId = fileData.Id,
+            };
+            this.m_dataSource.GetWriter<ImageInformation>().Add(imgInfo);
+            this.m_dataSource.Save();
+            if (imgInfo.Id != 0)
+            {
+                foreach(var tag in imageDto.Tags)
+                {
+                    this.UpdateImageTag(imgInfo.Id, tag, false);
+                }
+            }
+            return imgInfo.Id;
         }
+
     }
 }

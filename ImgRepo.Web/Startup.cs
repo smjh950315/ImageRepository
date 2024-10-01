@@ -1,9 +1,6 @@
 ﻿using Cyh.Net.Data;
 using ImgRepo.Model;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ImgRepo.Web
 {
@@ -12,13 +9,13 @@ namespace ImgRepo.Web
         IConfiguration m_configuration;
         public Startup(IConfiguration configuration)
         {
-            m_configuration = configuration;
+            this.m_configuration = configuration;
         }
 
 
         public void ConfigureServices(IServiceCollection services)
         {
-            string? connStr = m_configuration.GetConnectionString("DbConnectionSql");
+            string? connStr = this.m_configuration.GetConnectionString("DbConnectionSql");
 
             services.AddDbContext<ImageRepositoryContext>(opt =>
             {
@@ -38,7 +35,7 @@ namespace ImgRepo.Web
             });
             services.AddCors((opt) =>
             {
-                var policy = new Microsoft.AspNetCore.Cors.Infrastructure.CorsPolicy();
+                Microsoft.AspNetCore.Cors.Infrastructure.CorsPolicy policy = new Microsoft.AspNetCore.Cors.Infrastructure.CorsPolicy();
                 policy.Origins.Add("*");
                 policy.Headers.Add("*");
                 policy.Methods.Add("*");
@@ -51,9 +48,9 @@ namespace ImgRepo.Web
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
 
-            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope())
+            using (IServiceScope serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope())
             {
-                var context = serviceScope.ServiceProvider.GetRequiredService<ImageRepositoryContext>();
+                ImageRepositoryContext context = serviceScope.ServiceProvider.GetRequiredService<ImageRepositoryContext>();
                 context.Database.EnsureCreated();
             }
 

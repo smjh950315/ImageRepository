@@ -1,8 +1,7 @@
-﻿using ImgRepo.Service;
-using Microsoft.AspNetCore.Mvc;
-using System.Buffers.Text;
-using System.Text;
+﻿using ImgRepo.Model.ApiModel;
 using ImgRepo.Model.ViewModel;
+using ImgRepo.Service;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ImgRepo.Web.Controllers
 {
@@ -11,26 +10,37 @@ namespace ImgRepo.Web.Controllers
     public class ApiSaveController : Controller
     {
         private readonly IImageService _imageService;
+
         public ApiSaveController(IImageService imageService)
         {
-            _imageService = imageService;
+            this._imageService = imageService;
         }
+
+        [HttpGet]
+        [Route("tag/add/{imgId}/{tagName}")]
+        public BasicDetails? AddTag(long imgId, string tagName)
+        {
+            var tagId = _imageService.UpdateImageTag(imgId, tagName, false);
+            return tagId > 0 ? _imageService.GetTagDetails(tagId) : null;
+        }
+        [HttpGet]
+        [Route("tag/remove/{imgId}/{tagName}")]
+        public BasicDetails? RemoveTag(long imgId, string tagName)
+        {
+            var tagId = _imageService.UpdateImageTag(imgId, tagName, true);
+            return tagId > 0 ? _imageService.GetTagDetails(tagId) : null;
+        }
+
         [HttpPost]
         [Route("upload")]
-        public IActionResult Upload(UploadModel uploadModel)
+        public IActionResult Upload(ApiUploadModel uploadModel)
         {
             if (uploadModel.File == null)
             {
-                ModelState.AddModelError("UploadBytes", "Please upload an image");
+                this.ModelState.AddModelError("UploadBytes", "Please upload an image");
                 return this.NoContent();
             }
-            var str = uploadModel.File.Base64;
-            var buffer = Convert.FromBase64String(str);
-            _imageService.SaveImageFile(new BasicDetails
-            {
-                Name = uploadModel.Name,
-                Description = uploadModel.Description
-            }, buffer);
+            this._imageService.UploadImage(uploadModel);
             return this.Ok();
         }
     }

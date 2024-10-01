@@ -1,6 +1,4 @@
-﻿using Cyh.Net.Data.Predicate;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using ImgRepo.Service.Helpers;
 
 namespace ConsoleTest
 {
@@ -15,31 +13,13 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
 
-            List<ClassA> list = new List<ClassA>();
-            list.Add(new ClassA()
-            {
-                Str = "0",
-            });
-            list.Add(new ClassA()
-            {
-                Str = null,
-                Str2 = "str"
-            });
-            list.Add(new ClassA()
-            {
-                Str = "2",
-            });
+            var img = File.ReadAllBytes(@"D:\srcShot.png");
 
-            var prdc = Predicate.NewLegacyPredicate<ClassA>(CompareType.Equal);
-            var pdc1 = Predicate.GetExpression<ClassA>("Str2", CompareType.NotEqual, "str");
-            var pdc2 = Predicate.GetExpression<ClassA, string>(x => x.Str??"", CompareType.Equal, "0");
-            var hpdch = Predicate.NewPredicateHolder<ClassA>(x => true);
-            hpdch.And(x => x.Str2 == null);
-            hpdch.And(x => x.Str == "0");
+            var fmtName = ImageHelper.GetFormat(img);
 
-            var r = list.Where(pdc2.Compile());
-            ;
+            var bytes = ImageHelper.Resize(img, 256, 256);
 
+            File.WriteAllBytes(@"D:\dstShot.png", bytes);
 
             Console.WriteLine("Hello, World!");
         }

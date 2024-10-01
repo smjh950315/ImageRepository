@@ -1,20 +1,26 @@
-﻿using ImgRepo.Model.ViewModel;
+﻿using ImgRepo.Model.ApiModel;
+using ImgRepo.Model.ViewModel;
+using ImgRepo.Service.Dto;
 namespace ImgRepo.Service
 {
     public interface IImageService
     {
-        void UpdateImageTag(long imageId, string tagName, bool _delete);
-        byte[] GetFileBytes(long fileId);
-        IEnumerable<ImageThumbView> GetImageThumbViews(QueryModel? queryModel);
-
-        ArtworkDetails? GetImageDetails(long id);
-        ArtworkDetails? GetAlbumDetails(long id);
+        BasicDetails? GetAlbumDetails(long id);
+        BasicDetails? GetImageDetails(long id);
 
         BasicDetails? GetTagDetails(long id);
         BasicDetails? GetCategoryDetails(long id);
 
-        long GetImageFileId(long imageId);
+        IEnumerable<ImageThumbView> GetImageThumbViews(QueryModel? queryModel);
+        ApiFileModel? GetFileBytes(long fileId);
+        ApiFileModel? GetFullImage(long imgId);
+        ApiFileModel? GetThumbnail(long imgId);
 
-        void SaveImageFile(BasicDetails? imgDetails, byte[]? data);
+        IEnumerable<BasicInfo> GetTags(long imgId);
+        IEnumerable<BasicInfo> GetCategories(long imgId);
+
+        long UpdateImageTag(long imageId, string tagName, bool _delete);
+        long GetImageFileId(long imageId);
+        long UploadImage(NewImageDto? imageDto);
     }
 }

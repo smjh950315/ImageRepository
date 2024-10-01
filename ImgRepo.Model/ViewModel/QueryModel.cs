@@ -1,4 +1,5 @@
-﻿namespace ImgRepo.Model.ViewModel
+﻿#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+namespace ImgRepo.Model.ViewModel
 {
     public class QueryModel
     {

@@ -9,7 +9,7 @@ namespace ImgRepo.Service
             object? dataSource = sp.GetService(typeof(IDataSource));
             if (dataSource != null)
             {
-                //return (ImageService)Activator.CreateInstance(typeof(ImageService), dataSource);
+                return (ImageService)Activator.CreateInstance(typeof(ImageService), dataSource);
             }
             return null;
         }

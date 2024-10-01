@@ -12,7 +12,7 @@ namespace ImgRepo.Model
         public DbSet<AlbumInformation> AlbumInformations { get; set; }
         public DbSet<TagInformation> TagInformations { get; set; }
         public DbSet<CategoryInformation> CategoryInformations { get; set; }
-        public DbSet<BindingRecord> BindingRecords { get; set; }
+        public DbSet<ImageRecord> BindingRecords { get; set; }
         public DbSet<ImageFileData> ImageFileDatas { get; set; }
     }
     public partial class ImageRepositoryContext
@@ -22,13 +22,13 @@ namespace ImgRepo.Model
         public IQueryable<T> GetQueryable<T>() where T : class
         {
             Type entityType = typeof(T);
-            if (this.m_queryables.TryGetValue(entityType, out var queryable))
+            if (this.m_queryables.TryGetValue(entityType, out object? queryable))
             {
                 return (IQueryable<T>)queryable;
             }
             else
             {
-                var iqueryable = this.Set<T>();
+                DbSet<T> iqueryable = this.Set<T>();
                 this.m_queryables.Add(entityType, iqueryable);
                 return iqueryable;
             }

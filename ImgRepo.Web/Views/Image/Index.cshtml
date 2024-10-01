@@ -1,0 +1,51 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@using ImgRepo.Model.ViewModel
+@model BasicDetails
+<script src="~/lib/image_detail.js"></script>
+<div class="container">
+
+    <div>
+        <div id="image-id" style="display:none">@Model.Id</div>
+        <h1>@Model.Name</h1>
+
+        <img id="img-view" class="img-thumbnail" src="" alt="Image" />
+
+
+        <div>
+            <div>標籤</div>
+            <div class="img-repo-item-container" id="img-tag-container">
+            </div>
+            <input class="img-repo-input" type="text" />
+            <button class="btn" onclick="ImgRepoHelperInstance.Add(this)">新增</button>
+        </div>
+        <div>
+        <div>分類</div>
+            <div class="img-repo-item-container" id="img-cat-container">
+            </div>
+            <input class="img-repo-input" type="text" />
+            <button class="btn">新增</button>
+        </div>
+        <div>
+            <div>作者</div>
+            <input type="text" id="author-name" />
+            <button id="btn-save-author" class="btn">儲存</button>                
+        </div>
+        <div id="img-description">@Model.Description</div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        let baseUrl = "@Url.Action("", "")";
+        let imageId = Number($("#image-id").text());
+        ImgRepoHelperInstance = new ImgRepoHelper(baseUrl, imageId);
+        ImgRepoHelperInstance.LoadImage();
+        ImgRepoHelperInstance.LoadTags();
+        ImgRepoHelperInstance.LoadCats();
+    });
+</script>

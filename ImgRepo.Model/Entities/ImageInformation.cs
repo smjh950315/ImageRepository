@@ -1,6 +1,6 @@
 ﻿using ImgRepo.Model.Interface;
 using System.ComponentModel.DataAnnotations;
-
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities
 {
     public class ImageInformation : IBasicEntityInformation
@@ -11,6 +11,7 @@ namespace ImgRepo.Model.Entities
         public string Description { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
+        public long? AuthorId { get; set; }
         public long FileId { get; set; }
     }
 }
