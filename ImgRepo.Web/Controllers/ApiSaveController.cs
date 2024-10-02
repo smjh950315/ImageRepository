@@ -31,6 +31,7 @@ namespace ImgRepo.Web.Controllers
             long tagId = this._imageService.AddTag(imgId, tagName);
             return tagId > 0 ? this._imageService.GetTagDetail(tagId) : null;
         }
+
         [HttpGet]
         [Route("tag/remove/{imgId}/{tagName}")]
         public BasicDetails? RemoveTag(long imgId, string tagName)
@@ -39,8 +40,24 @@ namespace ImgRepo.Web.Controllers
             return tagId > 0 ? this._imageService.GetTagDetail(tagId) : null;
         }
 
+        [HttpGet]
+        [Route("category/add/{imgId}/{tagName}")]
+        public BasicDetails? AddCategory(long imgId, string tagName)
+        {
+            long cateId = this._imageService.AddCategory(imgId, tagName);
+            return cateId > 0 ? this._imageService.GetCategoryDetail(cateId) : null;
+        }
+
+        [HttpGet]
+        [Route("category/remove/{imgId}/{catName}")]
+        public BasicDetails? RemoveCategory(long imgId, string catName)
+        {
+            long cateId = this._imageService.RemoveCategory(imgId, catName);
+            return cateId > 0 ? this._imageService.GetCategoryDetail(cateId) : null;
+        }
+
         [HttpPost]
-        [Route("upload")]
+        [Route("image/upload")]
         public IActionResult Upload(ApiUploadModel uploadModel)
         {
             if (uploadModel.File == null)

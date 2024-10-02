@@ -26,12 +26,6 @@ namespace ImgRepo.Web.Controllers
             return this.View();
         }
 
-        [HttpGet]
-        public ApiFileModel? GetImage(long imgId)
-        {
-            return this._imageService.GetFullImage(imgId);
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

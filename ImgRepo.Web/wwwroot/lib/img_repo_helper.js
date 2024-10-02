@@ -30,7 +30,7 @@ class ImgRepoCommon {
                 _callback(data);
             },
             error: function (err) {
-                _callback(err);
+                _errcallback(err);
             }
         });
     }
@@ -44,7 +44,7 @@ class ImgRepoCommon {
                 _callback(data);
             },
             error: function (err) {
-                _callback(err);
+                _errcallback(err);
             }
         });
     }
@@ -62,19 +62,22 @@ class ImgRepoCommon {
         item.append(newLink);
         return newItem;
     }
+
+    static SearchItemGroupInitialize() {
+        let input = document.createElement("input");
+        $("#image-search");
+    }
 }
 
 class ImgRepoIndexHelper {
     static CreateThumbItem(x) {
-        let newItem = document.createElement("div");
+        let newItem = document.createElement("a");
         let item = $(newItem);
+        item.attr("href", "/Image/Index?id=" + x.imageId);
         item.addClass("img-repo-thumb");
-        item.addClass("col-3");
         item.html(`
-        <a href="/Image/Index?id=${x.imageId}">
         <img src="data:image/${x.format};base64,${x.base64}" />
-        <div class="text-center">${x.imageName}</div>
-        </a>
+        <div class="img-repo-thumb-overlay">${x.imageName}</div>        
         `);
         return newItem;
     }
@@ -99,11 +102,11 @@ class ImgRepoImageIndexHelper {
             }, (err) => { alert(err); });
         });
     }
-    static AddNewItem(_btn, _baseUrl, _itemName) {
+    static AddNewItem(_btn, _baseUrl, _itemName) {        
         let imgId = Number($("#image-id").text());
         ImgRepoCommon.SaveEdit(_btn, (value) => {
             ImgRepoCommon.HttpGet(_baseUrl + `api/save/${_itemName}/add/${imgId}/${value}`, (data) => {
-                let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${data.name}</span>`, (item) => {
+                let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${data.name}</span>`, (item) => {                    
                     ImgRepoCommon.HttpGet(_baseUrl + `api/save/${_itemName}/remove/${imgId}/${data.name}`, (e) => {
                         $(item).remove();
                     });
@@ -116,6 +119,7 @@ class ImgRepoImageIndexHelper {
         let imgId = Number($("#image-id").text());
         ImgRepoCommon.HttpGet(_baseUrl + `api/query/${_itemName}/` + imgId, (datas) => {
             let container = $(_container);
+            console.log(datas);
             datas.forEach(data => {
                 let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${data.name}</span>`, (item) => {
                     ImgRepoCommon.HttpGet(_baseUrl + `api/save/${_itemNameSingle}/remove/${imgId}/${data.name}`, (e) => {

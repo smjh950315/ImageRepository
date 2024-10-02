@@ -12,6 +12,7 @@ namespace ImgRepo.Web.Controllers
         {
             this._imageService = imageService;
         }
+
         public IActionResult Index(long id)
         {
             BasicDetails? imgDetail = this._imageService.GetImageDetail(id);
@@ -21,11 +22,13 @@ namespace ImgRepo.Web.Controllers
             }
             return this.View(imgDetail);
         }
+
         [HttpGet]
         public IActionResult Upload()
         {
             return this.View();
         }
+
         [HttpPost]
         public IActionResult Upload(WebUploadModel uploadModel)
         {
