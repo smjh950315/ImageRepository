@@ -8,8 +8,8 @@ namespace ImgRepo.Model.Entities
         [Required]
         public long Id { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; } = String.Empty;
+        public string? Description { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
-        public DateTime Updated { get; set; } = DateTime.Now;
+        public DateTime? Updated { get; set; }
     }
 }

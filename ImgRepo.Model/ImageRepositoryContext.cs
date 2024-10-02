@@ -10,14 +10,32 @@ namespace ImgRepo.Model
 
         public DbSet<ImageInformation> ImageInformations { get; set; }
         public DbSet<AlbumInformation> AlbumInformations { get; set; }
+        public DbSet<ArtistInformation> ArtistInformation { get; set; }
+
         public DbSet<TagInformation> TagInformations { get; set; }
         public DbSet<CategoryInformation> CategoryInformations { get; set; }
-        public DbSet<ImageRecord> BindingRecords { get; set; }
+
+        public DbSet<ImageRecord> ImageRecords { get; set; }
+        public DbSet<AlbumRecord> AlbumRecords { get; set; }
+
         public DbSet<ImageFileData> ImageFileDatas { get; set; }
     }
     public partial class ImageRepositoryContext
     {
         readonly Dictionary<Type, object> m_queryables = new Dictionary<Type, object>();
+        readonly Dictionary<Type, object> m_writers = new Dictionary<Type, object>();
+        public object? BeginTransaction()
+        {
+            return this.Database.BeginTransaction();
+        }
+        public void CommitTransaction()
+        {
+            this.Database.CommitTransaction();
+        }
+        public void RollbackTransaction()
+        {
+            this.Database.RollbackTransaction();
+        }
 
         public IQueryable<T> GetQueryable<T>() where T : class
         {
@@ -36,7 +54,18 @@ namespace ImgRepo.Model
 
         public IDataWriter<T> GetWriter<T>() where T : class
         {
-            return new ImageRepositoryDataWriter<T>(this.Set<T>());
+            Type entityType = typeof(T);
+            if (this.m_writers.TryGetValue(entityType, out object? queryable))
+            {
+                return (IDataWriter<T>)queryable;
+            }
+            else
+            {
+                DbSet<T>? dbSet = this.GetQueryable<T>() as DbSet<T>;
+                ImageRepositoryDataWriter<T> idataWriter = new ImageRepositoryDataWriter<T>(dbSet!);
+                this.m_writers.Add(entityType, idataWriter);
+                return idataWriter;
+            }
         }
 
         public bool Save()

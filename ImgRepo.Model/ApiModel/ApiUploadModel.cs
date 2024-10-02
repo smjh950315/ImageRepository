@@ -1,8 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using ImgRepo.Model.Interface;
+using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.ApiModel
 {
-    public class ApiUploadModel
+    public class ApiUploadModel : IImageBasicUploadModel
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }
@@ -14,9 +15,9 @@ namespace ImgRepo.Model.ApiModel
         public ApiFileModel File { get; set; }
 
         [JsonPropertyName("tags")]
-        public string[] Tags { get; set; }
+        public string Tags { get; set; }
 
         [JsonPropertyName("categories")]
-        public string[] Categories { get; set; }
+        public string Categories { get; set; }
     }
 }

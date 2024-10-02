@@ -1,4 +1,4 @@
-﻿namespace ImgRepo.Model
+﻿namespace ImgRepo.Service
 {
     public static class Extensions
     {

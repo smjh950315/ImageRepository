@@ -4,14 +4,34 @@
 @{
 }
 
-<div class="container">
-
-    <form method="post" action="Upload" enctype="multipart/form-data" >
-        <input name="ImageName" type="text" />
-        <input name="Description" type="text" />
-        <input name="Tags" type="text" />
-        <input name="Categories" type="text" />
-        <input name="File" type="file" />
-        <button type="submit">上傳</button>
+<div class="container" style="width:768px;">
+    <form method="post" action="Upload" enctype="multipart/form-data">
+        <div>
+            上傳圖片
+        </div>
+        <div class="form-control row">
+            <label class="col-3 text-center">名稱</label>
+            <input class="text-center" name="ImageName" type="text" />
+        </div>
+        <div class="form-control row">
+            <label class="col-3 text-center">描述</label>
+            <input class="text-center" name="Description" type="text" />
+        </div>
+        <div class="form-control row">
+            <label class="col-3 text-center">標籤</label>
+            <input class="text-center" name="Tags" type="text" />
+        </div>
+        <div class="form-control row">
+            <label class="col-3 text-center">分類</label>
+            <input class="text-center" name="Categories" type="text" />
+        </div>
+        <div class="form-control row">
+            <label class="col-3 text-center">檔案</label>
+            <input name="File" type="file" />
+        </div>
+        <div class="form-control row">
+            <label class="col-3 text-center">操作</label>
+            <button class="btn" type="submit">上傳</button>
+        </div>        
     </form>
 </div>

@@ -22,7 +22,7 @@ namespace ImgRepo.Model.ViewModel
         /// 物件資訊描述
         /// </summary>
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public static Expression<Func<T, BasicDetails>> GetExpression<T>() where T : IBasicEntityInformation
         {

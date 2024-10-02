@@ -1,4 +1,5 @@
 ﻿using Cyh.Net.Data;
+using ImgRepo.Service.Implement;
 
 namespace ImgRepo.Service
 {

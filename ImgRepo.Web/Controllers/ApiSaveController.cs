@@ -20,15 +20,15 @@ namespace ImgRepo.Web.Controllers
         [Route("tag/add/{imgId}/{tagName}")]
         public BasicDetails? AddTag(long imgId, string tagName)
         {
-            var tagId = _imageService.UpdateImageTag(imgId, tagName, false);
-            return tagId > 0 ? _imageService.GetTagDetails(tagId) : null;
+            long tagId = this._imageService.AddTag(imgId, tagName);
+            return tagId > 0 ? this._imageService.GetTagDetail(tagId) : null;
         }
         [HttpGet]
         [Route("tag/remove/{imgId}/{tagName}")]
         public BasicDetails? RemoveTag(long imgId, string tagName)
         {
-            var tagId = _imageService.UpdateImageTag(imgId, tagName, true);
-            return tagId > 0 ? _imageService.GetTagDetails(tagId) : null;
+            long tagId = this._imageService.RemoveTag(imgId, tagName);
+            return tagId > 0 ? this._imageService.GetTagDetail(tagId) : null;
         }
 
         [HttpPost]
@@ -40,7 +40,7 @@ namespace ImgRepo.Web.Controllers
                 this.ModelState.AddModelError("UploadBytes", "Please upload an image");
                 return this.NoContent();
             }
-            this._imageService.UploadImage(uploadModel);
+            this._imageService.CreateImage(uploadModel);
             return this.Ok();
         }
     }

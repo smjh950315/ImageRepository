@@ -6,11 +6,12 @@ class ImgRepoHelper {
     static CreateTagItem(name) {
         let newItem = document.createElement("span");
         let item = $(newItem);
+        item.addClass("img-repo-item");
         item.addClass("img-tag");
         item.html(`
         <input type="hidden" value="${name}" />
         <span>${name}</span>
-        <button class="btn" type="button" onclick="ImgRepoHelperInstance.Remove(this)"></button>`);
+        <a onclick="ImgRepoHelperInstance.Remove(this)">-</a>`);
         return newItem;
     }
     static CreateCatItem(name) {
@@ -20,7 +21,20 @@ class ImgRepoHelper {
         item.html(`
         <input type="hidden" value="${name}" />
         <span>${name}</span>
-        <button class="btn" type="button" onclick="ImgRepoHelperInstance.Remove(this)"></button>`);
+        <button class="btn" type="button" onclick="ImgRepoHelperInstance.Remove(this)">-</button>`);
+        return newItem;
+    }
+    static CreateThumbItem(x) {
+        let newItem = document.createElement("div");
+        let item = $(newItem);
+        item.addClass("img-repo-thumb");
+        item.addClass("col-3");
+        item.html(`
+        <a href="/Image/Index?id=${x.imageId}">
+        <img src="data:image/${x.format};base64,${x.base64}" />
+        <div class="text-center">${x.imageName}</div>
+        </a>
+        `);
         return newItem;
     }
     constructor(baseUrl, imageId) {
@@ -63,6 +77,13 @@ class ImgRepoHelper {
     Add(_btn) {
         let btn = $(_btn);
         let parent = btn.parent("div");
+        let input = parent.find(".img-repo-input");
+        let cancel = parent.find(".img-repo-cancel-btn");
+        if (input[0].style.display == "none") {
+            input.css("display", "");
+            cancel.css("display", "");
+            return;
+        }
         let name = parent.find(".img-repo-input").val();
         let container = parent.find(".img-repo-item-container");
         let _url = this.BaseUrl;
@@ -81,7 +102,16 @@ class ImgRepoHelper {
                 console.log(data);
                 container.append(callback(data.name));
             }
+        }).then(() => {
+            input.css("display", "none");
         });
+    }
+    Hide(_btn) {
+        let btn = $(_btn);
+        let parent = btn.parent("div");
+        let input = parent.find(".img-repo-input");
+        input.css("display", "none");
+        btn.css("display", "none");
     }
     Remove(_btn) {
         let btn = $(_btn);

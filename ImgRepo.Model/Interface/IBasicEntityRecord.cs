@@ -17,7 +17,7 @@
         /// 0=none, 1=tag, 2=category
         /// </summary>
         public long AttrType { get; set; }
-         
+
         /// <summary>
         /// tag_id, category_id
         /// </summary>

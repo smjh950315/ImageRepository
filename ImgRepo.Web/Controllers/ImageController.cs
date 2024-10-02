@@ -14,7 +14,7 @@ namespace ImgRepo.Web.Controllers
         }
         public IActionResult Index(long id)
         {
-            var imgDetail = _imageService.GetImageDetails(id);
+            BasicDetails? imgDetail = this._imageService.GetImageDetail(id);
             if (imgDetail == null)
             {
                 return this.View(new BasicDetails());
@@ -27,14 +27,14 @@ namespace ImgRepo.Web.Controllers
             return this.View();
         }
         [HttpPost]
-        public IActionResult Upload(WebFileModel uploadModel)
+        public IActionResult Upload(WebUploadModel uploadModel)
         {
-            if (uploadModel == null)
+            if (uploadModel == null || uploadModel.File == null)
             {
                 this.ModelState.AddModelError("UploadBytes", "Please upload an image");
                 return this.Upload();
             }
-            var newImage = this._imageService.UploadImage(uploadModel);
+            long newImage = this._imageService.CreateImage(uploadModel);
             return this.RedirectToAction("Index", "Image", new { id = newImage });
         }
     }

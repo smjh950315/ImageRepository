@@ -1,5 +1,4 @@
 using ImgRepo.Model.ApiModel;
-using ImgRepo.Model.ViewModel;
 using ImgRepo.Service;
 using ImgRepo.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -31,17 +30,6 @@ namespace ImgRepo.Web.Controllers
         public ApiFileModel? GetImage(long imgId)
         {
             return this._imageService.GetFullImage(imgId);
-        }
-
-        public IActionResult Upload(WebFileModel uploadModel)
-        {
-            if (uploadModel == null)
-            {
-                this.ModelState.AddModelError("UploadBytes", "Please upload an image");
-                return this.View("Index");
-            }
-            this._imageService.UploadImage(uploadModel);
-            return this.Ok();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

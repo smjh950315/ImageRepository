@@ -1,7 +1,7 @@
 ﻿using Cyh.Net.Data;
 using ImgRepo.Model.Entities;
 
-namespace ImgRepo.Service
+namespace ImgRepo.Service.Implement
 {
     public class ArtistService
     {
