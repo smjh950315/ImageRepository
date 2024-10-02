@@ -8,25 +8,15 @@
 </div>
 
 <div class="container">
-    <div class="row img-repo-thumb-container">
+    <div id="index-thumbnail-container" class="row img-repo-thumb-container">
 
     </div>
 </div>
 
 <script>
+    let baseUrl = "@Url.Action("", "")";
     $(document).ready(function () {
-        let baseUrl = "@Url.Action("", "")";
-        $.ajax({
-            url: baseUrl + `api/query/thumbnails/`,
-            type: "POST",
-            contentType: "application/json",
-            data: null,
-            success: function (data) {
-                data.forEach(x=>{
-                    $(".img-repo-thumb-container").append(ImgRepoHelper.CreateThumbItem(x));
-                });                
-            },
-        });
+        ImgRepoIndexHelper.LoadThumbnails(baseUrl);
     });
 </script>
 

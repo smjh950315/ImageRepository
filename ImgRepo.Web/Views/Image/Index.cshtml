@@ -10,44 +10,58 @@
 
     <div>
         <div id="image-id" style="display:none">@Model.Id</div>
-        <h1>@Model.Name</h1>
+        <div class="img-repo-attr-group" id="image-index-info-group">
+            <h2 class="img-repo-attr-label">名稱</h2>
+            <h4 class="img-repo-name">@Model.Name</h4>            
+            <div class="img-repo-edit-group">
+                <a class="img-repo-edit-btn" onclick="ImgRepoCommon.OpenEdit(this)">編輯</a>
+                <input class="img-repo-input" type="text" style="display:none;" />
+                <a class="img-repo-save-btn" style="display:none;" onclick="ImgRepoImageIndexHelper.EditImageName(this, baseUrl)">保存</a>
+                <a class="img-repo-cancel-btn" style="display:none;" onclick="ImgRepoCommon.CloseEdit(this)">取消</a>
+            </div>
+        </div>
 
-        <img id="img-view" class="img-fluid" src="" alt="Image" />
+        <img id="image-view" class="img-fluid" src="" alt="Image" />
 
-        <div class="img-repo-attr-group">
+        <div class="img-repo-attr-group" id="image-index-tag-group">
             <span class="img-repo-attr-label">標籤</span>
-            <a onclick="ImgRepoHelperInstance.Add(this)">新增</a>
-            <a class="img-repo-cancel-btn" style="display:none;" onclick="ImgRepoHelperInstance.Hide(this)">取消</a>
-            <div class="img-repo-item-container" id="img-tag-container">
+
+            <div class="img-repo-edit-group">
+                <a class="img-repo-edit-btn" onclick="ImgRepoCommon.OpenEdit(this)">新增</a>
+                <input class="img-repo-input" type="text" style="display:none;" />
+                <a class="img-repo-save-btn" style="display:none;" onclick="ImgRepoImageIndexHelper.AddNewTag(this, baseUrl)">保存</a>
+                <a class="img-repo-cancel-btn" style="display:none;" onclick="ImgRepoCommon.CloseEdit(this)">取消</a>
+                <div class="img-repo-item-container"></div>
             </div>
-            <input class="img-repo-input" style="display:none;" type="text" />            
         </div>
-        <div class="img-repo-attr-group">
+        <div class="img-repo-attr-group" id="image-index-category-group">
             <span class="img-repo-attr-label">分類</span>
-            <button class="btn">新增</button>
-            <div class="img-repo-item-container" id="img-cat-container">
+
+            <div class="img-repo-edit-group">
+                <a class="img-repo-edit-btn" onclick="ImgRepoCommon.OpenEdit(this)">新增</a>
+                <input class="img-repo-input" type="text" style="display:none;" />
+                <a class="img-repo-save-btn" style="display:none;" onclick="ImgRepoImageIndexHelper.AddNewCategory(this, baseUrl)">保存</a>
+                <a class="img-repo-cancel-btn" style="display:none;" onclick="ImgRepoCommon.CloseEdit(this)">取消</a>
+                <div class="img-repo-item-container"></div>
             </div>
-            <input class="img-repo-input" style="display:none;" type="text" />            
         </div>
-        <div class="img-repo-attr-group">
+
+        <div class="img-repo-attr-group" id="image-index-author-group">
             <span class="img-repo-attr-label">作者</span>
-            <input class="img-repo-item-container" type="text" id="author-name" style="display:none;" />
+            <input class="img-repo-input" type="text" id="author-name" style="display:none;" />
         </div>
-        <div class="img-repo-attr-group">
+        <div class="img-repo-attr-group" id="image-index-description-group">
             <div class="img-repo-attr-label">描述</div>
             <div class="img-repo-item-container" id="img-description">@Model.Description</div>
-        </div>        
+        </div>
     </div>
 
 </div>
 
 <script>
+    let baseUrl = "@Url.Action("", "")";
     $(document).ready(function () {
-        let baseUrl = "@Url.Action("", "")";
-        let imageId = Number($("#image-id").text());
-        ImgRepoHelperInstance = new ImgRepoHelper(baseUrl, imageId);
-        ImgRepoHelperInstance.LoadImage();
-        ImgRepoHelperInstance.LoadTags();
-        ImgRepoHelperInstance.LoadCats();
+        ImgRepoImageIndexHelper.LoadTags(baseUrl);
+        ImgRepoImageIndexHelper.LoadImage(baseUrl);
     });
 </script>

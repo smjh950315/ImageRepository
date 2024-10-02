@@ -17,6 +17,14 @@ namespace ImgRepo.Web.Controllers
         }
 
         [HttpGet]
+        [Route("rename/image/{imgId}/{newName}")]
+        public IActionResult RenameImage(long imgId, string newName)
+        {
+            long newId = this._imageService.RenameImage(imgId, newName);
+            return newId > 0 ? this.Ok() : this.NoContent();
+        }
+
+        [HttpGet]
         [Route("tag/add/{imgId}/{tagName}")]
         public BasicDetails? AddTag(long imgId, string tagName)
         {

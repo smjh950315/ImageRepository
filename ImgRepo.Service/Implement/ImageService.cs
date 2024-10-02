@@ -9,7 +9,7 @@ using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service.Implement
 {
-    internal class ImageService : IImageService
+    internal class ImageService : CommonService, IImageService
     {
         class MetaImageFileBinding
         {
@@ -22,13 +22,8 @@ namespace ImgRepo.Service.Implement
             public byte[] Thumbnail { get; set; }
         }
 
-        IDataSource m_dataSource;
         IQueryable<ImageInformation> m_images;
         IDataWriter<ImageInformation> m_imageWriter;
-        IQueryable<TagInformation> m_tags;
-        IDataWriter<TagInformation> m_tagWriter;
-        IQueryable<CategoryInformation> m_categories;
-        IDataWriter<CategoryInformation> m_categoryWriter;
         IQueryable<ArtistInformation> m_artists;
         IDataWriter<ArtistInformation> m_artistWriter;
 
@@ -41,110 +36,6 @@ namespace ImgRepo.Service.Implement
         IQueryable<ImageRecord> ImageTagRecordQueryable => this.m_imageRecords.Where(r => r.AttrType == AttributeType.Tag);
         IQueryable<ImageRecord> ImageCatRecordQueryable => this.m_imageRecords.Where(r => r.AttrType == AttributeType.Category);
 
-        long setObjectAttrData<TRecord, TAttr>(long objectId, long attrType, string attrName, bool _delete) where TRecord : class, IBasicEntityRecord, new() where TAttr : class, IBasicEntityInformation, new()
-        {
-            // no image
-            if (objectId == 0) return 0;
-
-            IQueryable<TAttr> attrs = this.m_dataSource.GetQueryable<TAttr>();
-            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
-            IDataWriter<TAttr> attrWriter = this.m_dataSource.GetWriter<TAttr>();
-            IDataWriter<TRecord> recordWriter = this.m_dataSource.GetWriter<TRecord>();
-
-            TAttr? attr = attrs.FirstOrDefault(a => a.Name == attrName);
-
-            if (_delete)
-            {
-                if (attr == null)
-                {
-                    // no attr, nothing to do
-                    return 0;
-                }
-                else
-                {
-                    // has attr, remove record
-                    TRecord? record = records.FirstOrDefault(r => r.ObjectId == objectId && r.AttrId == attr.Id);
-                    if (record != null)
-                    {
-                        recordWriter.Remove(record);
-                        if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                        {
-                            return -1;
-                        }
-                    }
-                    return attr.Id;
-                }
-            }
-            else
-            {
-                if (attr == null)
-                {
-                    // no attr, create attr and record
-                    attr = new TAttr
-                    {
-                        Name = attrName,
-                        Created = DateTime.Now,
-                    };
-                    attrWriter.Add(attr);
-                    if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                    {
-                        return -1;
-                    }
-                    TRecord record = new TRecord
-                    {
-                        ObjectId = objectId,
-                        AttrId = attr.Id,
-                        AttrType = attrType,
-                    };
-                    recordWriter.Add(record);
-                    if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                    {
-                        return -1;
-                    }
-                }
-                else
-                {
-                    // has attr, create record
-                    TRecord record = new TRecord
-                    {
-                        ObjectId = objectId,
-                        AttrId = attr.Id,
-                        AttrType = attrType,
-                    };
-                    recordWriter.Add(record);
-                    if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                    {
-                        return -1;
-                    }
-                }
-                return attr.Id;
-            }
-        }
-        long setObjectAttr<TObj, TRecord, TAttr>(long objectId, long attrType, string attrName, bool _delete)
-            where TObj : class, IBasicEntityInformation, new()
-            where TRecord : class, IBasicEntityRecord, new()
-            where TAttr : class, IBasicEntityInformation, new()
-        {
-            if (objectId == 0) return 0;
-            IQueryable<TObj> objs = this.m_dataSource.GetQueryable<TObj>();
-            if (!objs.Any(o => o.Id == objectId)) return 0;
-            return this.setObjectAttrData<TRecord, TAttr>(objectId, attrType, attrName, _delete);
-        }
-
-        IEnumerable<BasicInfo> getBasicInfo<TRecord, TAttr>(long objectId, long attrType) where TRecord : class, IBasicEntityRecord, new() where TAttr : class, IBasicEntityInformation, new()
-        {
-            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
-            IQueryable<TAttr> attrs = this.m_dataSource.GetQueryable<TAttr>();
-            return from r in records
-                   join a in attrs on r.AttrId equals a.Id
-                   where r.ObjectId == objectId && r.AttrType == attrType
-                   select new BasicInfo
-                   {
-                       Id = a.Id,
-                       Name = a.Name,
-                   };
-        }
-
         IQueryable<MetaImageFileBinding> ImageFiles => this.m_images.Join(this.m_imagefiles, i => i.FileId, f => f.Id, (i, f) => new MetaImageFileBinding
         {
             ImageId = i.Id,
@@ -156,16 +47,10 @@ namespace ImgRepo.Service.Implement
             Thumbnail = f.Thumbnail,
         });
 
-        public ImageService(IDataSource dataSource)
+        public ImageService(IDataSource dataSource) : base(dataSource)
         {
-            this.m_dataSource = dataSource;
-
             this.m_images = dataSource.GetQueryable<ImageInformation>();
             this.m_imageWriter = dataSource.GetWriter<ImageInformation>();
-            this.m_tags = dataSource.GetQueryable<TagInformation>();
-            this.m_tagWriter = dataSource.GetWriter<TagInformation>();
-            this.m_categories = dataSource.GetQueryable<CategoryInformation>();
-            this.m_categoryWriter = dataSource.GetWriter<CategoryInformation>();
             this.m_artists = dataSource.GetQueryable<ArtistInformation>();
             this.m_artistWriter = dataSource.GetWriter<ArtistInformation>();
 
@@ -242,6 +127,20 @@ namespace ImgRepo.Service.Implement
 
             return image.Id;
         }
+
+        public long RenameImage(long imageId, string newName)
+        {
+            if (imageId == 0) return 0;
+            ImageInformation? image = this.m_images.FirstOrDefault(i => i.Id == imageId);
+            if (image == null || image.Name==newName) return 0;
+            image.Name = newName;
+            image.Updated = DateTime.Now;
+            this.m_imageWriter.Update(image);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
+            return image.Id;
+        }
+
+
         public long SetAuthor(long imageId, long authorDataId, bool _delete)
         {
             if (imageId == 0 || authorDataId == 0) return 0;
