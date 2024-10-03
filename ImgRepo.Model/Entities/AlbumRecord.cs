@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ImgRepo.Model.Entities
 {
+    /// <summary>
+    /// 相簿與屬性的關聯紀錄
+    /// </summary>
     public class AlbumRecord : IBasicEntityRecord
     {
         [Required]

@@ -2,6 +2,9 @@
 
 namespace ImgRepo.Model.Entities
 {
+    /// <summary>
+    /// 圖片檔案資料
+    /// </summary>
     public class ImageFileData
     {
         [Required]

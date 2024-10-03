@@ -2,6 +2,9 @@
 
 namespace ImgRepo.Model.Entities
 {
+    /// <summary>
+    /// 圖片與屬性的關聯紀錄
+    /// </summary>
     public class ImageRecord : IBasicEntityRecord
     {
         public long Id { get; set; }

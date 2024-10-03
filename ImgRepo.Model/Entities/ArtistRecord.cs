@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ImgRepo.Model.Entities
 {
+    /// <summary>
+    /// 藝術家與屬性的關聯紀錄
+    /// </summary>
     public class ArtistRecord : IBasicEntityRecord
     {
         [Required]

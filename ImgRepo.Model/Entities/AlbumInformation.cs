@@ -2,6 +2,9 @@
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities
 {
+    /// <summary>
+    /// 相簿資訊
+    /// </summary>
     public class AlbumInformation : IBasicEntityInformation
     {
         public long Id { get; set; }

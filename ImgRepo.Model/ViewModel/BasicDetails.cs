@@ -4,20 +4,11 @@ using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.ViewModel
 {
-    public class BasicDetails
+    /// <summary>
+    /// 物件基本資訊WEB用模型
+    /// </summary>
+    public class BasicDetails : BasicInfo
     {
-        /// <summary>
-        /// 物件資訊id
-        /// </summary>
-        [JsonPropertyName("id")]
-        public long Id { get; set; }
-
-        /// <summary>
-        /// 物件資訊名稱
-        /// </summary>
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-
         /// <summary>
         /// 物件資訊描述
         /// </summary>

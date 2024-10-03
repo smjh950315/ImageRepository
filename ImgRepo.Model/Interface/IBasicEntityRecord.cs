@@ -1,5 +1,8 @@
 ﻿namespace ImgRepo.Model.Interface
 {
+    /// <summary>
+    /// 物件與屬性的關聯紀錄
+    /// </summary>
     public interface IBasicEntityRecord
     {
         /// <summary>

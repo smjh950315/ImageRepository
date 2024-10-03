@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities
 {
+    /// <summary>
+    /// 圖片資訊
+    /// </summary>
     public class ImageInformation : IBasicEntityInformation
     {
         [Required]

@@ -2,6 +2,9 @@
 
 namespace ImgRepo.Model.ApiModel
 {
+    /// <summary>
+    /// 附帶資訊的檔案模型
+    /// </summary>
     public class ApiThumbViewModel : ApiFileModel
     {
         [JsonPropertyName("imageId")]

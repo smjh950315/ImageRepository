@@ -2,6 +2,9 @@
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.ApiModel
 {
+    /// <summary>
+    /// API使用的檔案模型
+    /// </summary>
     public class ApiFileModel
     {
         [JsonPropertyName("filename")]
