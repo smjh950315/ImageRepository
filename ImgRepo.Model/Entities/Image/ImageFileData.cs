@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ImgRepo.Model.Entities
+namespace ImgRepo.Model.Entities.Image
 {
     /// <summary>
     /// 圖片檔案資料

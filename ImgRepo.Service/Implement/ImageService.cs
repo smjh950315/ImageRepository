@@ -1,8 +1,11 @@
 ﻿using Cyh.Net;
 using Cyh.Net.Data;
-using ImgRepo.Model.ApiModel;
-using ImgRepo.Model.Entities;
+using ImgRepo.Model.Common;
+using ImgRepo.Model.Entities.Artist;
+using ImgRepo.Model.Entities.Attributes;
+using ImgRepo.Model.Entities.Image;
 using ImgRepo.Model.Enums;
+using ImgRepo.Model.Image;
 using ImgRepo.Model.ViewModel;
 using ImgRepo.Service.Dto;
 
@@ -270,11 +273,11 @@ namespace ImgRepo.Service.Implement
             };
         }
 
-        public IEnumerable<ApiThumbViewModel> GetThumbnails(QueryModel? queryModel)
+        public IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel)
         {
             if (queryModel == null)
             {
-                return this.ImageFiles.Select(x => new ApiThumbViewModel
+                return this.ImageFiles.Select(x => new ApiThumbFileModel
                 {
                     FileName = x.FileName,
                     ImageName = x.ImageName,

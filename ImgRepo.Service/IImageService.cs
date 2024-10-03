@@ -1,4 +1,5 @@
-﻿using ImgRepo.Model.ApiModel;
+﻿using ImgRepo.Model.Common;
+using ImgRepo.Model.Image;
 using ImgRepo.Model.ViewModel;
 using ImgRepo.Service.Dto;
 
@@ -109,7 +110,7 @@ namespace ImgRepo.Service
         /// 取得圖片縮圖檔案
         /// </summary>
         /// <returns>Api用的檔案模型</returns>
-        IEnumerable<ApiThumbViewModel> GetThumbnails(QueryModel? queryModel);
+        IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel);
 
         /// <summary>
         /// 取得圖片標籤清單

@@ -1,4 +1,4 @@
-﻿using ImgRepo.Model.ViewModel;
+﻿using ImgRepo.Model.Common;
 
 namespace ImgRepo.Service
 {

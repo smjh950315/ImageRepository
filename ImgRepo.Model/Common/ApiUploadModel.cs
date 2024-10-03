@@ -1,7 +1,7 @@
 ﻿using ImgRepo.Model.Interface;
 using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-namespace ImgRepo.Model.ApiModel
+namespace ImgRepo.Model.Common
 {
     /// <summary>
     /// API使用的上傳模型
@@ -14,13 +14,13 @@ namespace ImgRepo.Model.ApiModel
         [JsonPropertyName("descprition")]
         public string Description { get; set; }
 
-        [JsonPropertyName("file")]
-        public ApiFileModel File { get; set; }
-
         [JsonPropertyName("tags")]
         public string Tags { get; set; }
 
         [JsonPropertyName("categories")]
         public string Categories { get; set; }
+
+        [JsonPropertyName("file")]
+        public ApiFileModel File { get; set; }
     }
 }

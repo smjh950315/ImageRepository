@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ImgRepo.Model.ViewModel
+namespace ImgRepo.Model.Common
 {
     /// <summary>
     /// 物件基本資訊WEB用模型

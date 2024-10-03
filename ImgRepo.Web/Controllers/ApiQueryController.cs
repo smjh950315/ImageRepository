@@ -1,4 +1,4 @@
-﻿using ImgRepo.Model.ApiModel;
+﻿using ImgRepo.Model.Common;
 using ImgRepo.Model.ViewModel;
 using ImgRepo.Service;
 using Microsoft.AspNetCore.Mvc;

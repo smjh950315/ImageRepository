@@ -1,8 +1,8 @@
 ﻿using Cyh.Net;
 using Cyh.Net.Data;
-using ImgRepo.Model.Entities;
+using ImgRepo.Model.Common;
+using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Model.Interface;
-using ImgRepo.Model.ViewModel;
 
 namespace ImgRepo.Service.Implement
 {

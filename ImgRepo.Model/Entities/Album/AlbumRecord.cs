@@ -1,16 +1,19 @@
 ﻿using ImgRepo.Model.Interface;
+using System.ComponentModel.DataAnnotations;
 
-namespace ImgRepo.Model.Entities
+namespace ImgRepo.Model.Entities.Album
 {
     /// <summary>
-    /// 圖片與屬性的關聯紀錄
+    /// 相簿與屬性的關聯紀錄
     /// </summary>
-    public class ImageRecord : IBasicEntityRecord
+    public class AlbumRecord : IBasicEntityRecord
     {
+        [Required]
         public long Id { get; set; }
         public long ObjectId { get; set; }
+
         /// <summary>
-        /// 0=none, 1=tag, 2=category, 3=author
+        /// <seealso cref="Enums.AttributeType"/>
         /// </summary>
         public long AttrType { get; set; }
         public long AttrId { get; set; }

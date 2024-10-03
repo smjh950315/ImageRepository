@@ -1,9 +1,9 @@
-﻿namespace ImgRepo.Model.Entities
+﻿namespace ImgRepo.Model.Entities.Bindings
 {
     /// <summary>
     /// 相簿與圖片的關聯紀錄
     /// </summary>
-    public class AlbumImageRecord
+    public class AlbumImageBinding
     {
         public long Id { get; set; }
 

@@ -1,5 +1,5 @@
 ﻿using Cyh.Net;
-using ImgRepo.Model.ApiModel;
+using ImgRepo.Model.Common;
 using ImgRepo.Model.Interface;
 using ImgRepo.Service.Helpers;
 

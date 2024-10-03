@@ -1,7 +1,7 @@
 ﻿using ImgRepo.Model.Interface;
 using System.ComponentModel.DataAnnotations;
 
-namespace ImgRepo.Model.Entities
+namespace ImgRepo.Model.Entities.Artist
 {
     /// <summary>
     /// 藝術家與屬性的關聯紀錄

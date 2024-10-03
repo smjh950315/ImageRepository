@@ -1,5 +1,8 @@
 ﻿using Cyh.Net.Data;
-using ImgRepo.Model.Entities;
+using ImgRepo.Model.Entities.Album;
+using ImgRepo.Model.Entities.Artist;
+using ImgRepo.Model.Entities.Attributes;
+using ImgRepo.Model.Entities.Image;
 using Microsoft.EntityFrameworkCore;
 
 namespace ImgRepo.Model
