@@ -10,9 +10,11 @@ namespace ImgRepo.Web.Controllers
     public class ApiQueryController : Controller
     {
         private readonly IImageService _imageService;
-        public ApiQueryController(IImageService imageService)
+        private readonly ICommonAttributeService _commonAttributeService;
+        public ApiQueryController(IImageService imageService, ICommonAttributeService commonAttributeService)
         {
             this._imageService = imageService;
+            this._commonAttributeService = commonAttributeService;
         }
 
         [HttpPost]
@@ -40,21 +42,21 @@ namespace ImgRepo.Web.Controllers
         [Route("tags/{imgId}")]
         public IEnumerable<BasicInfo> GetTags(long imgId)
         {
-            return this._imageService.GetImageTags(imgId);
+            return this._imageService.GetTags(imgId);
         }
 
         [HttpGet]
         [Route("categories/{imgId}")]
         public IEnumerable<BasicInfo> GetCategories(long imgId)
         {
-            return this._imageService.GetImageCategories(imgId);
+            return this._imageService.GetCategories(imgId);
         }
 
         [HttpGet]
         [Route("author/{imgId}")]
         public BasicDetails? GetAuthor(long imgId)
         {
-            return this._imageService.GetImageDetail(imgId);
+            return this._imageService.GetBasicDetails(imgId);
         }
     }
 }

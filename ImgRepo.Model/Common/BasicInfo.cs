@@ -17,6 +17,6 @@ namespace ImgRepo.Model.Common
         /// 物件資訊名稱
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

@@ -9,10 +9,11 @@ namespace ImgRepo.Web.Controllers
     public class ApiSaveController : Controller
     {
         private readonly IImageService _imageService;
-
-        public ApiSaveController(IImageService imageService)
+        private readonly ICommonAttributeService _commonAttributeService;
+        public ApiSaveController(IImageService imageService, ICommonAttributeService commonAttributeService)
         {
             this._imageService = imageService;
+            this._commonAttributeService = commonAttributeService;
         }
 
         [HttpGet]
@@ -28,7 +29,7 @@ namespace ImgRepo.Web.Controllers
         public BasicDetails? AddTag(long imgId, string tagName)
         {
             long tagId = this._imageService.AddTag(imgId, tagName);
-            return tagId > 0 ? this._imageService.GetTagDetail(tagId) : null;
+            return tagId > 0 ? this._commonAttributeService.GetTagDetail(tagId) : null;
         }
 
         [HttpGet]
@@ -36,7 +37,7 @@ namespace ImgRepo.Web.Controllers
         public BasicDetails? RemoveTag(long imgId, string tagName)
         {
             long tagId = this._imageService.RemoveTag(imgId, tagName);
-            return tagId > 0 ? this._imageService.GetTagDetail(tagId) : null;
+            return tagId > 0 ? this._commonAttributeService.GetTagDetail(tagId) : null;
         }
 
         [HttpGet]
@@ -44,7 +45,7 @@ namespace ImgRepo.Web.Controllers
         public BasicDetails? AddCategory(long imgId, string tagName)
         {
             long cateId = this._imageService.AddCategory(imgId, tagName);
-            return cateId > 0 ? this._imageService.GetCategoryDetail(cateId) : null;
+            return cateId > 0 ? this._commonAttributeService.GetCategoryDetail(cateId) : null;
         }
 
         [HttpGet]
@@ -52,7 +53,7 @@ namespace ImgRepo.Web.Controllers
         public BasicDetails? RemoveCategory(long imgId, string catName)
         {
             long cateId = this._imageService.RemoveCategory(imgId, catName);
-            return cateId > 0 ? this._imageService.GetCategoryDetail(cateId) : null;
+            return cateId > 0 ? this._commonAttributeService.GetCategoryDetail(cateId) : null;
         }
 
         [HttpPost]

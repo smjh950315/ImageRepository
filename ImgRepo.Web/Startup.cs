@@ -28,6 +28,8 @@ namespace ImgRepo.Web
             });
 
             services.AddScoped(ImgRepo.Service.Factories.GetImageService);
+            services.AddScoped(ImgRepo.Service.Factories.GetArtistService);
+            services.AddScoped(ImgRepo.Service.Factories.GetCommonAttributeService);
 
             services.AddControllersWithViews().AddJsonOptions((jsonOpt) =>
             {

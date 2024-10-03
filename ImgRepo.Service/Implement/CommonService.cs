@@ -1,7 +1,6 @@
 ﻿using Cyh.Net;
 using Cyh.Net.Data;
 using ImgRepo.Model.Common;
-using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Model.Interface;
 
 namespace ImgRepo.Service.Implement
@@ -9,18 +8,10 @@ namespace ImgRepo.Service.Implement
     internal class CommonService
     {
         protected IDataSource m_dataSource;
-        protected IQueryable<TagInformation> m_tags;
-        protected IDataWriter<TagInformation> m_tagWriter;
-        protected IQueryable<CategoryInformation> m_categories;
-        protected IDataWriter<CategoryInformation> m_categoryWriter;
 
         protected CommonService(IDataSource dataSource)
         {
-            m_dataSource = dataSource;
-            m_tags = dataSource.GetQueryable<TagInformation>();
-            m_tagWriter = dataSource.GetWriter<TagInformation>();
-            m_categories = dataSource.GetQueryable<CategoryInformation>();
-            m_categoryWriter = dataSource.GetWriter<CategoryInformation>();
+            this.m_dataSource = dataSource;
         }
 
         protected long setObjectAttrData<TRecord, TAttr>(long objectId, long attrType, string attrName, bool _delete) where TRecord : class, IBasicEntityRecord, new() where TAttr : class, IBasicEntityInformation, new()

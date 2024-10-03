@@ -15,7 +15,7 @@ namespace ImgRepo.Web.Controllers
 
         public IActionResult Index(long id)
         {
-            BasicDetails? imgDetail = this._imageService.GetImageDetail(id);
+            BasicDetails? imgDetail = this._imageService.GetBasicDetails(id);
             if (imgDetail == null)
             {
                 return this.View(new BasicDetails());

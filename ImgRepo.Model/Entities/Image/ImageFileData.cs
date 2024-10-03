@@ -19,8 +19,8 @@ namespace ImgRepo.Model.Entities.Image
         /// <summary>
         /// 預覽圖像資料(小圖 256x256)
         /// </summary>
-        public byte[]? Thumbnail { get; set; }
+        public byte[] Thumbnail { get; set; }
 
-        public byte[]? Data { get; set; }
+        public byte[] Data { get; set; }
     }
 }

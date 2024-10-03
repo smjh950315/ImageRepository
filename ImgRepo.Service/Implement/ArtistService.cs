@@ -2,13 +2,11 @@
 using Cyh.Net.Data;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Artist;
-using ImgRepo.Model.Entities.Attributes;
-using ImgRepo.Model.Enums;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service.Implement
 {
-    internal class ArtistService : CommonService, IArtistService
+    internal class ArtistService : CommonObjectService<ArtistInformation, ArtistRecord>, IArtistService
     {
         IQueryable<ArtistInformation> m_artists;
         IDataWriter<ArtistInformation> m_artistWriter;
@@ -27,7 +25,7 @@ namespace ImgRepo.Service.Implement
         public long CreateArtist(NewArtistDto? artistDto)
         {
             if (artistDto == null) return 0;
-            var artist = new ArtistInformation
+            ArtistInformation artist = new ArtistInformation
             {
                 Name = artistDto.ArtistName,
                 Description = artistDto.Description,
@@ -41,17 +39,17 @@ namespace ImgRepo.Service.Implement
                 return -1;
             }
             this.m_dataSource.CommitTransaction();
-            var artistId = artist.Id;
+            long artistId = artist.Id;
             if (artistDto.Tags != null)
             {
-                foreach (var tag in artistDto.Tags)
+                foreach (string tag in artistDto.Tags)
                 {
                     this.AddTag(artistId, tag);
                 }
             }
             if (artistDto.Categories != null)
             {
-                foreach (var category in artistDto.Categories)
+                foreach (string category in artistDto.Categories)
                 {
                     this.AddCategory(artistId, category);
                 }
@@ -64,50 +62,9 @@ namespace ImgRepo.Service.Implement
             return this.renameObject<ArtistInformation>(artistId, newName);
         }
 
-        public long RemoveArtist(long artistId)
-        {
-            return this.removeObject<ArtistInformation>(artistId);
-        }
-
-        public long AddCategory(long imageId, string categoryName)
-        {
-            return this.setObjectAttr<ArtistInformation, ArtistRecord, CategoryInformation>(imageId, AttributeType.Category, categoryName, false);
-        }
-        public long RemoveCategory(long imageId, string categoryName)
-        {
-            return this.setObjectAttr<ArtistInformation, ArtistRecord, CategoryInformation>(imageId, AttributeType.Category, categoryName, true);
-        }
-
-        public long AddTag(long artistId, string tagName)
-        {
-            return this.setObjectAttr<ArtistInformation, ArtistRecord, TagInformation>(artistId, AttributeType.Tag, tagName, false);
-        }
-        public long RemoveTag(long artistId, string tagName)
-        {
-            return this.setObjectAttr<ArtistInformation, ArtistRecord, TagInformation>(artistId, AttributeType.Tag, tagName, true);
-        }
-
-
-        public BasicDetails? GetArtistDetails(long artistId)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<BasicDetails>? GetArtistDetails(string artistName)
         {
             throw new NotImplementedException();
-        }
-
-        public IEnumerable<BasicInfo> GetArtistTags(long artistId)
-        {
-            if (artistId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getBasicInfo<ArtistRecord, ArtistInformation>(artistId, AttributeType.Tag);
-        }
-
-        public IEnumerable<BasicInfo> GetArtistCategories(long artistId)
-        {
-            if (artistId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getBasicInfo<ArtistRecord, ArtistInformation>(artistId, AttributeType.Category);
         }
     }
 }
