@@ -1,6 +1,6 @@
 ﻿using ImgRepo.Model.Common;
 using ImgRepo.Model.Image;
-using ImgRepo.Model.ViewModel;
+using ImgRepo.Model.Query;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service

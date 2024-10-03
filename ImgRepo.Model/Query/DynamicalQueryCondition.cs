@@ -1,7 +1,7 @@
 ﻿using Cyh.Net.Data.Predicate;
 using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-namespace ImgRepo.Model.ViewModel
+namespace ImgRepo.Model.Query
 {
     public class DynamicalQueryCondition
     {
@@ -22,8 +22,8 @@ namespace ImgRepo.Model.ViewModel
             return new ExpressionData
             {
                 MemberName = this.Name,
-                LinkType = (Cyh.Net.Data.Predicate.LinkType)this.Operand,
-                CompareType = (Cyh.Net.Data.Predicate.CompareType)this.Operator,
+                LinkType = (LinkType)this.Operand,
+                CompareType = (CompareType)this.Operator,
                 ConstantValue = this.Constant
             };
         }

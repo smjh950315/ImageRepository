@@ -15,8 +15,4 @@
     <ProjectReference Include="..\Cyh.Net\Cyh.Net.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ApiModel\" />
-  </ItemGroup>
-
 </Project>

@@ -1,5 +1,5 @@
 ﻿using ImgRepo.Model.Interface;
-
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities.Image
 {
     /// <summary>
@@ -8,11 +8,14 @@ namespace ImgRepo.Model.Entities.Image
     public class ImageRecord : IBasicEntityRecord
     {
         public long Id { get; set; }
+
         public long ObjectId { get; set; }
+
         /// <summary>
-        /// 0=none, 1=tag, 2=category, 3=author
+        /// <seealso cref="Enums.AttributeType"/>
         /// </summary>
         public long AttrType { get; set; }
+
         public long AttrId { get; set; }
     }
 }

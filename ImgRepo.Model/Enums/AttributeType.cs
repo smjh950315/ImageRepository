@@ -7,5 +7,6 @@
     {
         public const long Tag = 1;
         public const long Category = 2;
+        public const long Website = 3;
     }
 }

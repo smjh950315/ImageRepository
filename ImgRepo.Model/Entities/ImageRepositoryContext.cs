@@ -2,6 +2,7 @@
 using ImgRepo.Model.Entities.Album;
 using ImgRepo.Model.Entities.Artist;
 using ImgRepo.Model.Entities.Attributes;
+using ImgRepo.Model.Entities.Bindings;
 using ImgRepo.Model.Entities.Image;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,26 +12,38 @@ namespace ImgRepo.Model
     {
         public ImageRepositoryContext(DbContextOptions<ImageRepositoryContext> options) : base(options) { }
 
-        public DbSet<ImageInformation> ImageInformations { get; set; }
+
         public DbSet<AlbumInformation> AlbumInformations { get; set; }
-        public DbSet<ArtistInformation> ArtistInformation { get; set; }
+        public DbSet<AlbumRecord> AlbumRecords { get; set; }
+
+
+        public DbSet<ArtistInformation> ArtistInformations { get; set; }
+        public DbSet<ArtistRecord> ArtistRecords { get; set; }
+
+
+        public DbSet<ImageInformation> ImageInformations { get; set; }
+        public DbSet<ImageRecord> ImageRecords { get; set; }
+        public DbSet<ImageFileData> ImageFileDatas { get; set; }
+
 
         public DbSet<TagInformation> TagInformations { get; set; }
         public DbSet<CategoryInformation> CategoryInformations { get; set; }
+        public DbSet<WebsiteInformation> WebsiteInformations { get; set; }
 
-        public DbSet<ImageRecord> ImageRecords { get; set; }
-        public DbSet<AlbumRecord> AlbumRecords { get; set; }
 
-        public DbSet<ImageFileData> ImageFileDatas { get; set; }
+        public DbSet<AlbumImageBinding> AlbumImageBindings { get; set; }
     }
+
     public partial class ImageRepositoryContext
     {
         readonly Dictionary<Type, object> m_queryables = new Dictionary<Type, object>();
         readonly Dictionary<Type, object> m_writers = new Dictionary<Type, object>();
+
         public object? BeginTransaction()
         {
             return this.Database.BeginTransaction();
         }
+
         public void CommitTransaction()
         {
             this.Database.CommitTransaction();
@@ -83,6 +96,7 @@ namespace ImgRepo.Model
         {
             this.m_set = set;
         }
+
         public void Add(T item)
         {
             this.m_set.Add(item);

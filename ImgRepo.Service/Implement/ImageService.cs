@@ -6,7 +6,7 @@ using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Model.Entities.Image;
 using ImgRepo.Model.Enums;
 using ImgRepo.Model.Image;
-using ImgRepo.Model.ViewModel;
+using ImgRepo.Model.Query;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service.Implement

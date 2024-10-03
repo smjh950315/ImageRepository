@@ -10,11 +10,19 @@ namespace ImgRepo.Model.Entities.Image
     {
         [Required]
         public long Id { get; set; }
+
+        [StringLength(512)]
         public string Name { get; set; }
+
+        [StringLength(4096)]
         public string? Description { get; set; }
+
         public DateTime Created { get; set; }
+
         public DateTime? Updated { get; set; }
+
         public long FileId { get; set; }
+
         public long? ArtistId { get; set; }
     }
 }

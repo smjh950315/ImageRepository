@@ -1,5 +1,5 @@
 ﻿using ImgRepo.Model.Common;
-using ImgRepo.Model.ViewModel;
+using ImgRepo.Model.Query;
 using ImgRepo.Service;
 using Microsoft.AspNetCore.Mvc;
 

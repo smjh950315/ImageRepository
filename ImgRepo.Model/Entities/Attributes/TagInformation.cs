@@ -10,9 +10,15 @@ namespace ImgRepo.Model.Entities.Attributes
     {
         [Required]
         public long Id { get; set; }
+
+        [StringLength(512)]
         public string Name { get; set; }
+
+        [StringLength(4096)]
         public string? Description { get; set; }
+
         public DateTime Created { get; set; } = DateTime.Now;
+
         public DateTime? Updated { get; set; }
     }
 }

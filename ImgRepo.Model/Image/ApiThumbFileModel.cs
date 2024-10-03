@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
-using ImgRepo.Model.Common;
-
+﻿using ImgRepo.Model.Common;
+using System.Text.Json.Serialization;
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Image
 {
     /// <summary>

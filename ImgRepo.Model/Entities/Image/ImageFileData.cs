@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities.Image
 {
     /// <summary>
@@ -10,8 +10,10 @@ namespace ImgRepo.Model.Entities.Image
         [Required]
         public long Id { get; set; }
 
+        [StringLength(1024)]
         public string FileName { get; set; } = string.Empty;
 
+        [StringLength(32)]
         public string Format { get; set; } = string.Empty;
 
         /// <summary>

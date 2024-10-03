@@ -1,12 +1,9 @@
 ﻿using ImgRepo.Model.Interface;
 using System.ComponentModel.DataAnnotations;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-namespace ImgRepo.Model.Entities.Artist
+namespace ImgRepo.Model.Entities.Attributes
 {
-    /// <summary>
-    /// 藝術家的資訊
-    /// </summary>
-    public class ArtistInformation : IBasicEntityInformation
+    public class WebsiteInformation : IBasicEntityInformation
     {
         [Required]
         public long Id { get; set; }
@@ -20,5 +17,8 @@ namespace ImgRepo.Model.Entities.Artist
         public DateTime Created { get; set; }
 
         public DateTime? Updated { get; set; }
+
+        [StringLength(1024)]
+        public string? Url { get; set; }
     }
 }
