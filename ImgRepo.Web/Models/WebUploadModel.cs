@@ -3,7 +3,7 @@ using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Web.Models
 {
-    public class WebUploadModel : IImageBasicUploadModel
+    public class WebUploadModel : IBasicUploadModel
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

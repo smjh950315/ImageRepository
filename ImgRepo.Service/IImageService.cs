@@ -13,6 +13,13 @@ namespace ImgRepo.Service
         long CreateImage(NewImageDto? imageDto);
 
         /// <summary>
+        /// 移除圖片
+        /// </summary>
+        /// <param name="imageId">圖片ID</param>
+        /// <returns>移除的圖片ID，0代表失敗、-1代表發生例外</returns>
+        long RemoveImage(long imageId);
+
+        /// <summary>
         /// 重新命名圖片
         /// </summary>
         /// <param name="imageId">圖片ID</param>

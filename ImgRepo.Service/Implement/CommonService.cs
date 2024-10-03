@@ -102,7 +102,7 @@ namespace ImgRepo.Service.Implement
                 return attr.Id;
             }
         }
-        
+
         protected long setObjectAttr<TObj, TRecord, TAttr>(long objectId, long attrType, string attrName, bool _delete)
             where TObj : class, IBasicEntityInformation, new()
             where TRecord : class, IBasicEntityRecord, new()
@@ -128,5 +128,26 @@ namespace ImgRepo.Service.Implement
                    };
         }
 
+        protected long renameObject<TObj>(long objectId, string newName) where TObj : class, IBasicEntityInformation, new()
+        {
+            if (objectId == 0) return 0;
+            TObj? obj = this.m_dataSource.GetQueryable<TObj>().FirstOrDefault(i => i.Id == objectId);
+            if (obj == null || obj.Name == newName) return 0;
+            obj.Name = newName;
+            obj.Updated = DateTime.Now;
+            this.m_dataSource.GetWriter<TObj>().Update(obj);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
+            return obj.Id;
+        }
+
+        protected long removeObject<TObj>(long objectId) where TObj : class, IBasicEntityInformation, new()
+        {
+            if (objectId == 0) return 0;
+            TObj? obj = this.m_dataSource.GetQueryable<TObj>().FirstOrDefault(i => i.Id == objectId);
+            if (obj == null) return 0;
+            this.m_dataSource.GetWriter<TObj>().Remove(obj);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
+            return obj.Id;
+        }
     }
 }

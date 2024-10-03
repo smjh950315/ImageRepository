@@ -16,7 +16,7 @@ namespace ImgRepo.Service.Dto
         public string[] Tags { get; set; }
         public string[] Categories { get; set; }
 
-        NewImageDto(IImageBasicUploadModel uploadModel, string filename, Stream stream)
+        NewImageDto(IBasicUploadModel uploadModel, string filename, Stream stream)
         {
             this.FileName = filename;
             this.Data = new byte[stream.Length];
@@ -28,7 +28,7 @@ namespace ImgRepo.Service.Dto
             this.Tags = uploadModel.Tags.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Tags.Split(',');
             this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(',');
         }
-        NewImageDto(IImageBasicUploadModel uploadModel, string filename, byte[] binaryData)
+        NewImageDto(IBasicUploadModel uploadModel, string filename, byte[] binaryData)
         {
             this.FileName = filename;
             this.Data = binaryData;
@@ -40,12 +40,12 @@ namespace ImgRepo.Service.Dto
             this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(',');
         }
 
-        public static NewImageDto FromBasicUploadModel(IImageBasicUploadModel uploadModel, string filename, Stream stream)
+        public static NewImageDto FromBasicUploadModel(IBasicUploadModel uploadModel, string filename, Stream stream)
         {
             return new NewImageDto(uploadModel, filename, stream);
         }
 
-        public static NewImageDto FromBasicUploadModel(IImageBasicUploadModel uploadModel, string filename, byte[] binaryData)
+        public static NewImageDto FromBasicUploadModel(IBasicUploadModel uploadModel, string filename, byte[] binaryData)
         {
             return new NewImageDto(uploadModel, filename, binaryData);
         }

@@ -12,5 +12,6 @@ namespace ImgRepo.Model.Entities
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         public long FileId { get; set; }
+        public long? ArtistId { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.ApiModel
 {
-    public class ApiUploadModel : IImageBasicUploadModel
+    public class ApiUploadModel : IBasicUploadModel
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }

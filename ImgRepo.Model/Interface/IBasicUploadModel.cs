@@ -1,6 +1,6 @@
 ﻿namespace ImgRepo.Model.Interface
 {
-    public interface IImageBasicUploadModel
+    public interface IBasicUploadModel
     {
         string Name { get; set; }
         string Description { get; set; }

@@ -3,7 +3,6 @@ using Cyh.Net.Data;
 using ImgRepo.Model.ApiModel;
 using ImgRepo.Model.Entities;
 using ImgRepo.Model.Enums;
-using ImgRepo.Model.Interface;
 using ImgRepo.Model.ViewModel;
 using ImgRepo.Service.Dto;
 
@@ -46,6 +45,15 @@ namespace ImgRepo.Service.Implement
             Data = f.Data,
             Thumbnail = f.Thumbnail,
         });
+
+        long updateAuthorIdUnchecked(ImageInformation image, long? authorDataId)
+        {
+            image.ArtistId = authorDataId;
+            image.Updated = DateTime.Now;
+            this.m_imageWriter.Update(image);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
+            return authorDataId ?? 0;
+        }
 
         public ImageService(IDataSource dataSource) : base(dataSource)
         {
@@ -130,50 +138,47 @@ namespace ImgRepo.Service.Implement
 
         public long RenameImage(long imageId, string newName)
         {
-            if (imageId == 0) return 0;
-            ImageInformation? image = this.m_images.FirstOrDefault(i => i.Id == imageId);
-            if (image == null || image.Name==newName) return 0;
-            image.Name = newName;
-            image.Updated = DateTime.Now;
-            this.m_imageWriter.Update(image);
-            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
-            return image.Id;
+            return this.renameObject<ImageInformation>(imageId, newName);
         }
-
-
+        public long RemoveImage(long imageId)
+        {
+            var removedId = this.removeObject<ImageInformation>(imageId);
+            if (removedId <= 0) return removedId;
+            var imageFile = this.m_imagefiles.FirstOrDefault(f => f.Id == removedId);
+            if (imageFile == null) return removedId;
+            this.m_imageFileWriter.Remove(imageFile);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
+            return removedId;
+        }
         public long SetAuthor(long imageId, long authorDataId, bool _delete)
         {
-            if (imageId == 0 || authorDataId == 0) return 0;
+            if (imageId == 0) return 0;
+            if (authorDataId <= 0) _delete = true;
+
             ImageInformation? image = this.m_images.FirstOrDefault(i => i.Id == imageId);
             if (image == null) return 0;
-            ArtistInformation? author = this.m_artists.FirstOrDefault(a => a.Id == authorDataId);
-            if (author == null) return 0;
-            ImageRecord? record = this.m_imageRecords.FirstOrDefault(r => r.ObjectId == imageId && r.AttrType == AttributeType.Artist);
+
             if (_delete)
             {
-                if (record == null) return 0;
-                this.m_imageRecordWriter.Remove(record);
-                if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
-                return author.Id;
+                return image.ArtistId.HasValue ? this.updateAuthorIdUnchecked(image, null) : 0;
             }
             else
             {
-                if (record == null)
+                var author = this.m_artists.FirstOrDefault(a => a.Id == authorDataId);
+                if (author == null)
                 {
-                    this.m_imageRecordWriter.Add(new ImageRecord
-                    {
-                        AttrId = author.Id,
-                        AttrType = AttributeType.Artist,
-                        ObjectId = imageId,
-                    });
+                    return image.ArtistId.HasValue ? this.updateAuthorIdUnchecked(image, null) : 0;
+                }
+
+                if (image.ArtistId.HasValue)
+                {
+                    if (image.ArtistId.Value == authorDataId) return authorDataId;
+                    return this.updateAuthorIdUnchecked(image, authorDataId);
                 }
                 else
                 {
-                    record.AttrId = author.Id;
-                    this.m_imageRecordWriter.Update(record);
+                    return this.updateAuthorIdUnchecked(image, authorDataId);
                 }
-                if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
-                return author.Id;
             }
         }
 

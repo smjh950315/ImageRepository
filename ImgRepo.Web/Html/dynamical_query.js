@@ -15,6 +15,75 @@ class DynamicalQueryConstant {
         { value: 7, text: '包含' },
         { value: 8, text: '屬於' },
     ]
+    static names = [
+        { value: 'name', text: '名稱' },
+        { value: 'tag', text: '標籤' },
+        { value: 'category', text: '類型' },
+    ]
+    static BasicTableTemplate() {
+        return `
+            <table>
+                <thead>
+                    <tr>
+                        <th class="text-center">連接條件</th>
+                        <th class="text-center">搜尋條件</th>
+                        <th class="text-center">比較方式</th>
+                        <th class="text-center">關鍵字</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center">
+                        </td>
+                        <td class="text-center">
+                            <select class="dynamical-query-name-selection">
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <select class="dynamical-query-operator-selection">
+                            </select>
+                        </td>
+                        <td>
+                            <input class="dynamical-query-constant-input" type="text" style="width:100%" />
+                        </td>
+                        <td>
+                            <button class="btn" onclick="DynamicalQuery.addRow(this)">+</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button class="btn" onclick="DynamicalQuery.getQueryData(this)">查詢</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>`;
+    }
+    static RowTemplate = `
+    <tr>
+        <td class="text-center">
+            <select class="dynamical-query-operand-selection">
+            </select>
+        </td>
+        <td class="text-center">
+            <select class="dynamical-query-name-selection">
+            </select>
+        </td>
+        <td class="text-center">
+            <select class="dynamical-query-operator-selection">
+            </select>
+        </td>
+        <td>
+            <input class="dynamical-query-constant-input" type="text" style="width:100%" />
+        </td>
+        <td>
+            <button class="btn dynamical-query-add-button">+</button>
+            <button class="btn dynamical-query-remove-button">-</button>
+        </td>
+    </tr>`;
     static FillOptions(optionArray, selectElement, className) {
         optionArray.forEach(item => {
             let option = document.createElement('option')
@@ -51,11 +120,13 @@ class DynamicalQueryConstant {
         DynamicalQueryConstant.FillNameOptions(nameOptionArray, newRow.find('.dynamical-query-name-selection').first()[0], 'text-center');
         DynamicalQueryConstant.FillOperatorOptions(newRow.find('.dynamical-query-operator-selection').first()[0], 'text-center');
         DynamicalQueryConstant.FillOperandOptions(newRow.find('.dynamical-query-operand-selection').first()[0], 'text-center');
+        let newRmvBtn = newRow.find('.dynamical-query-remove-button');
+        let newAddBtn = newRow.find('.dynamical-query-add-button');
         newRow.find('.dynamical-query-remove-button').first().click(function () {
-            DynamicalQueryConstant.RemoveRow(this);
+            DynamicalQueryConstant.RemoveRow(newRmvBtn);
         });
         newRow.find('.dynamical-query-add-button').first().click(function () {
-            DynamicalQueryConstant.AddRow(this, template, nameOptionArray);
+            DynamicalQueryConstant.AddRow(newAddBtn, template, nameOptionArray);
         });
     }
     static GetDynamicQueryConditions(elem) {

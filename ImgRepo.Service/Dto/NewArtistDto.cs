@@ -1,0 +1,21 @@
+﻿using Cyh.Net;
+using ImgRepo.Model.Interface;
+
+namespace ImgRepo.Service.Dto
+{
+    public class NewArtistDto
+    {
+        public string ArtistName { get; set; }
+        public string? Description { get; set; }
+        public string[] Tags { get; set; }
+        public string[] Categories { get; set; }
+
+        NewArtistDto(IBasicUploadModel uploadModel)
+        {
+            this.ArtistName = uploadModel.Name;
+            this.Description = uploadModel.Description;
+            this.Tags = uploadModel.Tags.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Tags.Split(',');
+            this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(',');
+        }
+    }
+}
