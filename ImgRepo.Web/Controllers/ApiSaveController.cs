@@ -16,43 +16,43 @@ namespace ImgRepo.Web.Controllers
             this._commonAttributeService = commonAttributeService;
         }
 
-        [HttpGet]
-        [Route("rename/image/{imgId}/{newName}")]
-        public IActionResult RenameImage(long imgId, string newName)
+        [HttpPost]
+        [Route("image/name")]
+        public IActionResult RenameImage(ApiAttributeEdit apiAttributeEdit)
         {
-            long newId = this._imageService.RenameImage(imgId, newName);
-            return newId > 0 ? this.Ok() : this.NoContent();
+            long newId = this._imageService.RenameImage(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
+            return newId > 0 ? this.Ok() : this.BadRequest();
         }
 
-        [HttpGet]
-        [Route("tag/add/{imgId}/{tagName}")]
-        public BasicDetails? AddTag(long imgId, string tagName)
+        [HttpPost]
+        [Route("image/tag/add")]
+        public BasicDetails? AddTag(ApiAttributeEdit apiAttributeEdit)
         {
-            long tagId = this._imageService.AddTag(imgId, tagName);
+            long tagId = this._imageService.AddTag(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
             return tagId > 0 ? this._commonAttributeService.GetTagDetail(tagId) : null;
         }
 
-        [HttpGet]
-        [Route("tag/remove/{imgId}/{tagName}")]
-        public BasicDetails? RemoveTag(long imgId, string tagName)
+        [HttpPost]
+        [Route("image/tag/remove")]
+        public BasicDetails? RemoveTag(ApiAttributeEdit apiAttributeEdit)
         {
-            long tagId = this._imageService.RemoveTag(imgId, tagName);
+            long tagId = this._imageService.RemoveTag(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
             return tagId > 0 ? this._commonAttributeService.GetTagDetail(tagId) : null;
         }
 
-        [HttpGet]
-        [Route("category/add/{imgId}/{tagName}")]
-        public BasicDetails? AddCategory(long imgId, string tagName)
+        [HttpPost]
+        [Route("image/category/add")]
+        public BasicDetails? AddCategory(ApiAttributeEdit apiAttributeEdit)
         {
-            long cateId = this._imageService.AddCategory(imgId, tagName);
+            long cateId = this._imageService.AddCategory(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
             return cateId > 0 ? this._commonAttributeService.GetCategoryDetail(cateId) : null;
         }
 
-        [HttpGet]
-        [Route("category/remove/{imgId}/{catName}")]
-        public BasicDetails? RemoveCategory(long imgId, string catName)
+        [HttpPost]
+        [Route("image/category/remove")]
+        public BasicDetails? RemoveCategory(ApiAttributeEdit apiAttributeEdit)
         {
-            long cateId = this._imageService.RemoveCategory(imgId, catName);
+            long cateId = this._imageService.RemoveCategory(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
             return cateId > 0 ? this._commonAttributeService.GetCategoryDetail(cateId) : null;
         }
 

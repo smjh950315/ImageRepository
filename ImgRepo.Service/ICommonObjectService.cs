@@ -1,4 +1,7 @@
-﻿using ImgRepo.Model.Common;
+﻿using Cyh.Net.Data;
+using Cyh.Net.Data.Predicate;
+using ImgRepo.Model.Common;
+using ImgRepo.Model.Query;
 
 namespace ImgRepo.Service
 {
@@ -86,5 +89,28 @@ namespace ImgRepo.Service
         /// <param name="objectId">物件ID</param>
         /// <returns>網站清單</returns>
         IEnumerable<BasicInfo> GetWebsites(long objectId);
+
+        /// <summary>
+        /// 用標籤取物件ID
+        /// </summary>
+        /// <param name="exprDatas"></param>
+        /// <returns></returns>
+        public IEnumerable<long> GetIdsByTagName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null);
+
+        /// <summary>
+        /// 用分類取物件ID
+        /// </summary>
+        /// <param name="exprDatas"></param>
+        /// <returns></returns>
+        public IEnumerable<long> GetIdsByCategoryName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null);
+
+        /// <summary>
+        /// 用網站取物件ID
+        /// </summary>
+        /// <param name="exprDatas"></param>
+        /// <returns></returns>
+        public IEnumerable<long> GetIdsByWebsiteName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null);
+
+        IEnumerable<long> GetIdsByQueryModel(QueryModel? queryModel, DataRange? range = null);
     }
 }

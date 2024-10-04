@@ -150,6 +150,7 @@ class DynamicalQueryConstant {
             }
             conditions.push({ name: name, operator: Number(operator), operand: Number(operand), constant: constant });
         });
+        console.log(conditions);
         return conditions;
     }
 }

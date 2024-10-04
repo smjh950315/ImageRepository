@@ -1,8 +1,58 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
+<script src="~/imgrepo/home.js"></script>
+<script src="~/dynamical_query.js"></script>
 <div class="container">
+    <br>
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="text-center">連接條件</th>
+                    <th class="text-center">搜尋條件</th>
+                    <th class="text-center">比較方式</th>
+                    <th class="text-center">關鍵字</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-center">
+                    </td>
+                    <td class="text-center">
+                        <select class="dynamical-query-name-selection">
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <select class="dynamical-query-operator-selection">
+                        </select>
+                    </td>
+                    <td>
+                        <input class="dynamical-query-constant-input"
+                               type="text" style="width:100%" />
+                    </td>
+                    <td>
+                        <button class="btn"
+                                onclick="DynamicalQuery.addRow(this)">
+                            +
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <button class="btn"
+                                onclick="DynamicalQuery.execQuery(this)">
+                            查詢
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     <div id="index-thumbnail-container" class="row img-repo-thumb-container">
 
     </div>
@@ -14,4 +64,54 @@
         ImgRepoIndexHelper.LoadThumbnails(baseUrl);
     });
 </script>
-
+<script>
+    var DynamicalQuery = {
+        names: [
+            {value: 'Name', text: '名稱'},
+            {value: 'Tag', text: '標籤'},
+            {value: 'Category', text: '類型'},
+        ],
+        getRowTemplates: function() {
+            return `<tr>
+                <td class="text-center">
+                    <select class="dynamical-query-operand-selection">
+                    </select>
+                </td>
+                <td class="text-center">
+                    <select class="dynamical-query-name-selection">
+                    </select>
+                </td>
+                <td class="text-center">
+                    <select class="dynamical-query-operator-selection">
+                    </select>
+                </td>
+                <td>
+                    <input class="dynamical-query-constant-input" type="text" style="width:100%" />
+                </td>
+                <td>
+                    <button class="btn dynamical-query-add-button">+</button>
+                    <button class="btn dynamical-query-remove-button">-</button>
+                </td>
+            </tr>`;
+        },
+        removeRow: function(elem) {
+            DynamicalQueryConstant.RemoveRow(elem);
+        },
+        addRow: function(elem) {
+            DynamicalQueryConstant.AddRow(elem, DynamicalQuery.getRowTemplates(), DynamicalQuery.names);
+        },
+        execQuery: function(elem) {
+            let data = DynamicalQueryConstant.GetDynamicQueryConditions(elem);
+            let condition = {
+                conditions: data
+            };
+            ImgRepoIndexHelper.LoadThumbnails(baseUrl, condition);
+        },
+    };
+</script>
+<script>
+    $(document).ready(function() {
+        DynamicalQueryConstant.FillNameOptions(DynamicalQuery.names, $(".dynamical-query-name-selection")[0], 'text-center');
+        DynamicalQueryConstant.FillOperatorOptions($(".dynamical-query-operator-selection")[0], 'text-center');
+    });
+</script>

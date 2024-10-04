@@ -1,8 +1,12 @@
-﻿using Cyh.Net.Data;
+﻿using Cyh.Net;
+using Cyh.Net.Data;
+using Cyh.Net.Data.Predicate;
+using ImgRepo.Data.Enums;
+using ImgRepo.Data.Interface;
+using ImgRepo.Model;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Attributes;
-using ImgRepo.Model.Enums;
-using ImgRepo.Model.Interface;
+using ImgRepo.Model.Query;
 
 namespace ImgRepo.Service.Implement
 {
@@ -63,19 +67,73 @@ namespace ImgRepo.Service.Implement
         public IEnumerable<BasicInfo> GetTags(long objectId)
         {
             if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getBasicInfo<TRecord, TagInformation>(objectId, AttributeType.Tag);
+            return this.getObjectAttrInfos<TRecord, TagInformation>(objectId, AttributeType.Tag);
         }
 
         public IEnumerable<BasicInfo> GetCategories(long objectId)
         {
             if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getBasicInfo<TRecord, CategoryInformation>(objectId, AttributeType.Category);
+            return this.getObjectAttrInfos<TRecord, CategoryInformation>(objectId, AttributeType.Category);
         }
 
         public IEnumerable<BasicInfo> GetWebsites(long objectId)
         {
             if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getBasicInfo<TRecord, WebsiteInformation>(objectId, AttributeType.Website);
+            return this.getObjectAttrInfos<TRecord, WebsiteInformation>(objectId, AttributeType.Website);
+        }
+
+        public IEnumerable<long> GetIdsByTagName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
+        {
+            var ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Tag, exprDatas);
+            if (range != null)
+            {
+                return ids.Skip(range.Begin).Take(range.Count).ToList();
+            }
+            return ids.ToList();
+        }
+
+        public IEnumerable<long> GetIdsByCategoryName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
+        {
+            var ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Category, exprDatas);
+            if (range != null)
+            {
+                return ids.Skip(range.Begin).Take(range.Count).ToList();
+            }
+            return ids.ToList();
+        }
+
+        public IEnumerable<long> GetIdsByWebsiteName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
+        {
+            var ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Website, exprDatas);
+            if (range != null)
+            {
+                return ids.Skip(range.Begin).Take(range.Count).ToList();
+            }
+            return ids.ToList();
+        }
+
+        public IEnumerable<long> GetIdsByQueryModel(QueryModel? queryModel, DataRange? range = null)
+        {
+            if (queryModel == null) return Enumerable.Empty<long>();
+            //var exprDatas = new List<ExpressionData>();
+            //var exprDicts = new Dictionary<string, List<ExpressionData>>();
+            //if (queryModel.Conditions != null)
+            //{
+            //    foreach (var condition in queryModel.Conditions)
+            //    {
+            //        if (condition.TryGetExpressionData(out ExpressionData? exprData))
+            //        {
+            //            exprDatas.Add(exprData);
+            //        }
+            //    }
+            //}
+
+            IQueryable<long> ids = this.queryAllAttributes<TObject, TRecord>(queryModel).Distinct();
+            if (range != null)
+            {
+                return ids.Skip(range.Begin).Take(range.Count).ToList();
+            }
+            return ids.ToList();
         }
     }
 }

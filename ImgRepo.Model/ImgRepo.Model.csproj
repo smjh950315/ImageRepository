@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cyh.Net.Data\Cyh.Net.Data.csproj" />
     <ProjectReference Include="..\Cyh.Net\Cyh.Net.csproj" />
+    <ProjectReference Include="..\ImgRepo.Data\ImgRepo.Data.csproj" />
   </ItemGroup>
 
 </Project>

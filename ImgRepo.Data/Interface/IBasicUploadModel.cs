@@ -1,4 +1,4 @@
-﻿namespace ImgRepo.Model.Interface
+﻿namespace ImgRepo.Data.Interface
 {
     /// <summary>
     /// 基本物件上傳模型

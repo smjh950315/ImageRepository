@@ -1,4 +1,4 @@
-﻿namespace ImgRepo.Model.Interface
+﻿namespace ImgRepo.Data.Interface
 {
     /// <summary>
     /// image, author, album 物件的基本資訊介面

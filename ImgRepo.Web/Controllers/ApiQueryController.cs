@@ -18,7 +18,7 @@ namespace ImgRepo.Web.Controllers
         }
 
         [HttpPost]
-        [Route("thumbnails")]
+        [Route("image/thumbnails")]
         public IEnumerable<ApiFileModel> GetThumbnails(QueryModel? queryModel)
         {
             return this._imageService.GetThumbnails(queryModel);
@@ -39,21 +39,21 @@ namespace ImgRepo.Web.Controllers
         }
 
         [HttpGet]
-        [Route("tags/{imgId}")]
+        [Route("image/tags/{imgId}")]
         public IEnumerable<BasicInfo> GetTags(long imgId)
         {
             return this._imageService.GetTags(imgId);
         }
 
         [HttpGet]
-        [Route("categories/{imgId}")]
+        [Route("image/categories/{imgId}")]
         public IEnumerable<BasicInfo> GetCategories(long imgId)
         {
             return this._imageService.GetCategories(imgId);
         }
 
         [HttpGet]
-        [Route("author/{imgId}")]
+        [Route("image/author/{imgId}")]
         public BasicDetails? GetAuthor(long imgId)
         {
             return this._imageService.GetBasicDetails(imgId);

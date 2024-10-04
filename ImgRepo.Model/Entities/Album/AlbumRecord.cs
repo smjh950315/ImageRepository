@@ -1,4 +1,4 @@
-﻿using ImgRepo.Model.Interface;
+﻿using ImgRepo.Data.Interface;
 using System.ComponentModel.DataAnnotations;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities.Album
@@ -14,7 +14,7 @@ namespace ImgRepo.Model.Entities.Album
         public long ObjectId { get; set; }
 
         /// <summary>
-        /// <seealso cref="Enums.AttributeType"/>
+        /// <seealso cref="ImgRepo.Data.Enums.AttributeType"/>
         /// </summary>
         public long AttrType { get; set; }
 

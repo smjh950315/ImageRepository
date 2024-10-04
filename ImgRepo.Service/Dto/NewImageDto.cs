@@ -1,6 +1,6 @@
 ﻿using Cyh.Net;
+using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
-using ImgRepo.Model.Interface;
 using ImgRepo.Service.Helpers;
 
 namespace ImgRepo.Service.Dto

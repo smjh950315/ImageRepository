@@ -1,4 +1,4 @@
-﻿namespace ImgRepo.Model.Enums
+﻿namespace ImgRepo.Data.Enums
 {
     /// <summary>
     /// 屬性類型

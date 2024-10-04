@@ -1,4 +1,4 @@
-﻿using ImgRepo.Model.Interface;
+﻿using ImgRepo.Data.Interface;
 using System.ComponentModel.DataAnnotations;
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 namespace ImgRepo.Model.Entities.Image

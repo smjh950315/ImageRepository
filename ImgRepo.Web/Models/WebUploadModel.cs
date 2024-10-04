@@ -1,4 +1,4 @@
-﻿using ImgRepo.Model.Interface;
+﻿using ImgRepo.Data.Interface;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Web.Models

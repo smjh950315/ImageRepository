@@ -1,4 +1,4 @@
-﻿namespace ImgRepo.Model.Interface
+﻿namespace ImgRepo.Data.Interface
 {
     /// <summary>
     /// 物件與屬性的關聯紀錄

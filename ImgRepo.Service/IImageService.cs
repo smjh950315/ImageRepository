@@ -1,4 +1,5 @@
-﻿using ImgRepo.Model.Common;
+﻿using Cyh.Net.Data;
+using ImgRepo.Model.Common;
 using ImgRepo.Model.Image;
 using ImgRepo.Model.Query;
 using ImgRepo.Service.Dto;
@@ -48,6 +49,6 @@ namespace ImgRepo.Service
         /// 取得圖片縮圖檔案
         /// </summary>
         /// <returns>Api用的檔案模型</returns>
-        IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel);
+        IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel, DataRange? dataRange = null);
     }
 }

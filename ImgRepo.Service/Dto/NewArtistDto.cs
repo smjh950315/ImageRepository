@@ -1,5 +1,5 @@
 ﻿using Cyh.Net;
-using ImgRepo.Model.Interface;
+using ImgRepo.Data.Interface;
 
 namespace ImgRepo.Service.Dto
 {

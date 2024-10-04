@@ -10,13 +10,13 @@
         {
             get
             {
-                if (_format == null)
+                if (this._format == null)
                 {
                     return "Unknown";
                 }
-                return _format;
+                return this._format;
             }
-            set { _format = value; }
+            set { this._format = value; }
         }
     }
 }

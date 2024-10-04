@@ -222,21 +222,26 @@ namespace ImgRepo.Service.Implement
             };
         }
 
-        public IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel)
+        public IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel, DataRange? dataRange = null)
         {
+            var files = this.ImageFiles.Select(x => new ApiThumbFileModel
+            {
+                FileName = x.FileName,
+                ImageName = x.ImageName,
+                Format = x.Format,
+                Base64 = Convert.ToBase64String(x.Thumbnail),
+                ImageId = x.ImageId,
+                FileId = x.FileId,
+            });
             if (queryModel == null)
             {
-                return this.ImageFiles.Select(x => new ApiThumbFileModel
-                {
-                    FileName = x.FileName,
-                    ImageName = x.ImageName,
-                    Format = x.Format,
-                    Base64 = Convert.ToBase64String(x.Thumbnail),
-                    ImageId = x.ImageId,
-                    FileId = x.FileId,
-                }).ToList();
+                return files.ToList();
             }
-            return [];
+            else
+            {
+                var ids = this.GetIdsByQueryModel(queryModel, dataRange);
+                return files.Where(f => ids.Contains(f.ImageId)).ToList();
+            }
         }
     }
 }
