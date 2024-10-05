@@ -8,12 +8,8 @@ class DynamicalQueryConstant {
         { value: 0, text: '' },
         { value: 1, text: '等於' },
         { value: 2, text: '不等於' },
-        { value: 3, text: '大於' },
-        { value: 4, text: '大於或等於' },
-        { value: 5, text: '小於' },
-        { value: 6, text: '小於或等於' },
-        { value: 7, text: '包含' },
-        { value: 8, text: '屬於' },
+        { value: 7, text: '至少包含' },
+        { value: 8, text: '屬於任一' },
     ]
     static names = [
         { value: 'name', text: '名稱' },

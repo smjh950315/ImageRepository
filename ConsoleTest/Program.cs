@@ -1,4 +1,4 @@
-﻿using ImgRepo.Service.Helpers;
+﻿using ImageHelperSharp;
 
 namespace ConsoleTest
 {
@@ -13,13 +13,12 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
 
-            var img = File.ReadAllBytes(@"D:\srcShot.png");
+            var img1 = File.ReadAllBytes(@"D:\test2.png");
 
-            var fmtName = ImageHelper.GetFormat(img);
+            var img2 = File.ReadAllBytes(@"D:\test3.png");
 
-            var bytes = ImageHelper.Resize(img, 256, 256);
 
-            File.WriteAllBytes(@"D:\dstShot.png", bytes);
+            var diff = OpenCVService.GetImageDifferential(img1, img2);
 
             Console.WriteLine("Hello, World!");
         }

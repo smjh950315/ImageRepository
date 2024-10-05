@@ -1,4 +1,5 @@
 ﻿using ImgRepo.Model.Common;
+using ImgRepo.Model.Image;
 using ImgRepo.Model.Query;
 using ImgRepo.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace ImgRepo.Web.Controllers
 
         [HttpPost]
         [Route("image/thumbnails")]
-        public IEnumerable<ApiFileModel> GetThumbnails(QueryModel? queryModel)
+        public IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel)
         {
             return this._imageService.GetThumbnails(queryModel);
         }

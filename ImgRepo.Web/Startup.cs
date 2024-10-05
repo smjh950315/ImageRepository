@@ -27,6 +27,9 @@ namespace ImgRepo.Web
                 return sp.GetService<ImageRepositoryContext>()!;
             });
 
+            string? filePath = this.m_configuration.GetSection("FileServer")["Root"];
+
+            services.AddScoped(sp => ImgRepo.Service.Factories.GetFileAccessService(sp, filePath));
             services.AddScoped(ImgRepo.Service.Factories.GetImageService);
             services.AddScoped(ImgRepo.Service.Factories.GetArtistService);
             services.AddScoped(ImgRepo.Service.Factories.GetCommonAttributeService);

@@ -1,5 +1,7 @@
 ﻿using Cyh.Net;
 using Cyh.Net.Data;
+using ImgRepo.Data;
+using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Artist;
 using ImgRepo.Model.Entities.Image;
@@ -11,7 +13,7 @@ namespace ImgRepo.Service.Implement
 {
     internal class ImageService : CommonObjectService<ImageInformation, ImageRecord>, IImageService
     {
-        class MetaImageFileBinding
+        class MetaImageFileBinding : IImageFileUriConvertable
         {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
             public long ImageId { get; set; }
@@ -19,8 +21,7 @@ namespace ImgRepo.Service.Implement
             public long FileId { get; set; }
             public string FileName { get; set; }
             public string Format { get; set; }
-            public byte[] Data { get; set; }
-            public byte[] Thumbnail { get; set; }
+            public string Uri { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
         }
 
@@ -34,6 +35,7 @@ namespace ImgRepo.Service.Implement
 
         IQueryable<ImageFileData> m_imagefiles;
         IDataWriter<ImageFileData> m_imageFileWriter;
+        IFileAccessService m_fileAccessService;
 
         IQueryable<MetaImageFileBinding> ImageFiles => this.m_images.Join(this.m_imagefiles, i => i.FileId, f => f.Id, (i, f) => new MetaImageFileBinding
         {
@@ -42,8 +44,7 @@ namespace ImgRepo.Service.Implement
             FileId = f.Id,
             FileName = f.FileName,
             Format = f.Format,
-            Data = f.Data,
-            Thumbnail = f.Thumbnail,
+            Uri = f.Uri,
         });
 
         long updateAuthorIdUnchecked(ImageInformation image, long? authorDataId)
@@ -55,7 +56,7 @@ namespace ImgRepo.Service.Implement
             return authorDataId ?? 0;
         }
 
-        public ImageService(IDataSource dataSource) : base(dataSource)
+        public ImageService(IDataSource dataSource, IFileAccessService fileAccessService) : base(dataSource)
         {
             this.m_images = dataSource.GetQueryable<ImageInformation>();
             this.m_imageWriter = dataSource.GetWriter<ImageInformation>();
@@ -67,6 +68,7 @@ namespace ImgRepo.Service.Implement
 
             this.m_imagefiles = dataSource.GetQueryable<ImageFileData>();
             this.m_imageFileWriter = dataSource.GetWriter<ImageFileData>();
+            this.m_fileAccessService = fileAccessService;
         }
 
         public long CreateImage(NewImageDto? imageDto)
@@ -75,13 +77,18 @@ namespace ImgRepo.Service.Implement
             {
                 return 0;
             }
+
             this.m_dataSource.BeginTransaction();
+            Guid guid = Guid.NewGuid();
             ImageFileData imageFileData = new ImageFileData
             {
                 FileName = imageDto.FileName,
-                Format = imageDto.Format,
-                Data = imageDto.Data,
-                Thumbnail = imageDto.ThumbData
+                Width = imageDto.ImInfo.Size.Width,
+                Height = imageDto.ImInfo.Size.Height,
+                Channel = imageDto.ImInfo.Channels,
+                FileSize = imageDto.Data.Length,
+                Format = imageDto.ImInfo.Format,
+                Uri = guid.ToString(),
             };
             this.m_imageFileWriter.Add(imageFileData);
             try
@@ -93,6 +100,7 @@ namespace ImgRepo.Service.Implement
                 this.m_dataSource.RollbackTransaction();
                 return -1;
             }
+
             ImageInformation image = new ImageInformation
             {
                 Name = imageDto.ImageName,
@@ -116,6 +124,14 @@ namespace ImgRepo.Service.Implement
                 this.m_dataSource.RollbackTransaction();
                 return 0;
             }
+
+            if (!this.m_fileAccessService.SaveObject("image", image.Id, imageFileData.Uri, imageFileData.Format, imageDto.Data)
+                || !this.m_fileAccessService.SaveObject("image", image.Id, imageFileData.Uri + "_thumb", imageFileData.Format, imageDto.ThumbData))
+            {
+                this.m_dataSource.RollbackTransaction();
+                return -1;
+            }
+
             this.m_dataSource.CommitTransaction();
 
             if (imageDto.Tags != null)
@@ -187,61 +203,58 @@ namespace ImgRepo.Service.Implement
         public ApiFileModel? GetFullImage(long imgId)
         {
             if (imgId == 0) return null;
-            var meta = this.ImageFiles.Select(x => new
-            {
-                ImageId = x.ImageId,
-                FileName = x.FileName,
-                Format = x.Format,
-                Data = x.Data,
-            }).FirstOrDefault(x => x.ImageId == imgId);
+            MetaImageFileBinding? meta = this.ImageFiles.FirstOrDefault(x => x.ImageId == imgId);
             if (meta == null) return null;
+            byte[] data = this.m_fileAccessService.GetFile(meta.GetFullUri());
             return new ApiFileModel
             {
                 FileName = meta.FileName,
                 Format = meta.Format,
-                Base64 = Convert.ToBase64String(meta.Data),
+                Base64 = Convert.ToBase64String(data),
             };
         }
 
         public ApiFileModel? GetThumbnail(long imgId)
         {
             if (imgId == 0) return null;
-            var meta = this.ImageFiles.Select(x => new
-            {
-                ImageId = x.ImageId,
-                FileName = x.FileName,
-                Format = x.Format,
-                Data = x.Thumbnail,
-            }).FirstOrDefault(x => x.ImageId == imgId);
+            MetaImageFileBinding? meta = this.ImageFiles.FirstOrDefault(x => x.ImageId == imgId);
             if (meta == null) return null;
+            byte[] data = this.m_fileAccessService.GetFile(meta.GetThumbFullUri());
             return new ApiFileModel
             {
                 FileName = meta.FileName,
                 Format = meta.Format,
-                Base64 = Convert.ToBase64String(meta.Data),
+                Base64 = Convert.ToBase64String(data),
             };
         }
 
         public IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel, DataRange? dataRange = null)
         {
-            var files = this.ImageFiles.Select(x => new ApiThumbFileModel
+            IQueryable<ApiThumbFileModel> files = this.ImageFiles.Select(x => new ApiThumbFileModel
             {
                 FileName = x.FileName,
                 ImageName = x.ImageName,
                 Format = x.Format,
-                Base64 = Convert.ToBase64String(x.Thumbnail),
                 ImageId = x.ImageId,
                 FileId = x.FileId,
+                Uri = x.Uri,
             });
+            List<ApiThumbFileModel> results = new List<ApiThumbFileModel>();
             if (queryModel == null)
             {
-                return files.ToList();
+                results = files.ToList();
             }
             else
             {
-                var ids = this.GetIdsByQueryModel(queryModel, dataRange);
-                return files.Where(f => ids.Contains(f.ImageId)).ToList();
+                IEnumerable<long> ids = this.GetIdsByQueryModel(queryModel, dataRange);
+                results = files.Where(f => ids.Contains(f.ImageId)).ToList();
             }
+            for (int i = 0; i < results.Count; i++)
+            {
+                ApiThumbFileModel result = results[i];
+                result.Base64 = Convert.ToBase64String(this.m_fileAccessService.GetFile(result.GetThumbFullUri()));
+            }
+            return results;
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Cyh.Net;
+using ImageHelperSharp;
+using ImageHelperSharp.Common;
 using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
-using ImgRepo.Service.Helpers;
-
 namespace ImgRepo.Service.Dto
 {
     public class NewImageDto
@@ -10,39 +10,44 @@ namespace ImgRepo.Service.Dto
         public string ImageName { get; set; }
         public string? Description { get; set; }
         public string FileName { get; set; }
-        public string Format { get; set; }
         public byte[] Data { get; set; }
         public byte[] ThumbData { get; set; }
         public string[] Tags { get; set; }
         public string[] Categories { get; set; }
+        public ImInfo ImInfo { get; set; }
 
-        NewImageDto(IBasicUploadModel uploadModel, string filename, Stream stream)
-        {
-            this.FileName = filename;
-            this.Data = new byte[stream.Length];
-            stream.Read(this.Data, 0, this.Data.Length);
-            this.ThumbData = ImageHelper.Resize(this.Data, 256, 256);
-            this.ImageName = uploadModel.Name.IsNullOrEmpty() ? filename : uploadModel.Name;
-            this.Format = ImageHelper.GetFormat(this.Data);
-            this.Description = uploadModel.Description;
-            this.Tags = uploadModel.Tags.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Tags.Split(',');
-            this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(',');
-        }
-        NewImageDto(IBasicUploadModel uploadModel, string filename, byte[] binaryData)
+        NewImageDto(IBasicUploadModel uploadModel, string filename, byte[] binaryData, string[] tags, string[] categories)
         {
             this.FileName = filename;
             this.Data = binaryData;
-            this.ThumbData = ImageHelper.Resize(this.Data, 256, 256);
+            this.ThumbData = StbService.Resize(this.Data, 256, 256);
             this.ImageName = uploadModel.Name.IsNullOrEmpty() ? filename : uploadModel.Name;
-            this.Format = ImageHelper.GetFormat(this.Data);
+            this.ImInfo = StbService.GetImageFileInfo(this.Data);
             this.Description = uploadModel.Description;
-            this.Tags = uploadModel.Tags.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Tags.Split(',');
-            this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(',');
+            this.Tags = tags;
+            this.Categories = categories;
+        }
+        NewImageDto(IBasicUploadModel uploadModel, string filename, Stream stream)
+            : this(uploadModel, filename, stream.GetBytes())
+        {
+        }
+        NewImageDto(IBasicUploadModel uploadModel, string filename, byte[] binaryData)
+            : this(uploadModel, filename, binaryData, uploadModel.Tags.SplitNoThrow(','), uploadModel.Categories.SplitNoThrow(','))
+        {
         }
 
         public static NewImageDto FromBasicUploadModel(IBasicUploadModel uploadModel, string filename, Stream stream)
         {
             return new NewImageDto(uploadModel, filename, stream);
+        }
+
+        public static NewImageDto FromBasicUploadModel(IBasicUploadModel uploadModel, string filename, Stream stream, string[] tags, string[] categories)
+        {
+            return new NewImageDto(uploadModel, filename, stream.GetBytes(), [], [])
+            {
+                Tags = tags,
+                Categories = categories
+            };
         }
 
         public static NewImageDto FromBasicUploadModel(IBasicUploadModel uploadModel, string filename, byte[] binaryData)
@@ -55,6 +60,5 @@ namespace ImgRepo.Service.Dto
             byte[] data = Convert.FromBase64String(model.File.Base64);
             return new NewImageDto(model, model.File.FileName, data);
         }
-
     }
 }

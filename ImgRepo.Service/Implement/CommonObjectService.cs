@@ -1,9 +1,7 @@
-﻿using Cyh.Net;
-using Cyh.Net.Data;
+﻿using Cyh.Net.Data;
 using Cyh.Net.Data.Predicate;
 using ImgRepo.Data.Enums;
 using ImgRepo.Data.Interface;
-using ImgRepo.Model;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Model.Query;
@@ -84,7 +82,7 @@ namespace ImgRepo.Service.Implement
 
         public IEnumerable<long> GetIdsByTagName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
         {
-            var ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Tag, exprDatas);
+            IQueryable<long> ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Tag, exprDatas);
             if (range != null)
             {
                 return ids.Skip(range.Begin).Take(range.Count).ToList();
@@ -94,7 +92,7 @@ namespace ImgRepo.Service.Implement
 
         public IEnumerable<long> GetIdsByCategoryName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
         {
-            var ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Category, exprDatas);
+            IQueryable<long> ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Category, exprDatas);
             if (range != null)
             {
                 return ids.Skip(range.Begin).Take(range.Count).ToList();
@@ -104,7 +102,7 @@ namespace ImgRepo.Service.Implement
 
         public IEnumerable<long> GetIdsByWebsiteName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
         {
-            var ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Website, exprDatas);
+            IQueryable<long> ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Website, exprDatas);
             if (range != null)
             {
                 return ids.Skip(range.Begin).Take(range.Count).ToList();
@@ -115,19 +113,6 @@ namespace ImgRepo.Service.Implement
         public IEnumerable<long> GetIdsByQueryModel(QueryModel? queryModel, DataRange? range = null)
         {
             if (queryModel == null) return Enumerable.Empty<long>();
-            //var exprDatas = new List<ExpressionData>();
-            //var exprDicts = new Dictionary<string, List<ExpressionData>>();
-            //if (queryModel.Conditions != null)
-            //{
-            //    foreach (var condition in queryModel.Conditions)
-            //    {
-            //        if (condition.TryGetExpressionData(out ExpressionData? exprData))
-            //        {
-            //            exprDatas.Add(exprData);
-            //        }
-            //    }
-            //}
-
             IQueryable<long> ids = this.queryAllAttributes<TObject, TRecord>(queryModel).Distinct();
             if (range != null)
             {

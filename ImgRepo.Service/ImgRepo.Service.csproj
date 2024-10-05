@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ImageHelperSharp\ImageHelperSharp.csproj" />
     <ProjectReference Include="..\ImgRepo.Data\ImgRepo.Data.csproj" />
     <ProjectReference Include="..\ImgRepo.Model\ImgRepo.Model.csproj" />
   </ItemGroup>
@@ -16,6 +17,10 @@
     <None Update="ExternLib\ImageHelper.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Helpers\" />
   </ItemGroup>
 
 </Project>

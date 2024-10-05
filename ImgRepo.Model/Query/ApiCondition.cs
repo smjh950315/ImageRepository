@@ -1,6 +1,4 @@
-﻿using Cyh.Net.Data.Predicate;
-using Cyh.Net;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace ImgRepo.Model.Query
 {

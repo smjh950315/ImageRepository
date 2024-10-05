@@ -1,5 +1,4 @@
-﻿using Cyh.Net;
-using Cyh.Net.Data.Predicate;
+﻿using Cyh.Net.Data.Predicate;
 using ImgRepo.Model.Query;
 using System.Diagnostics.CodeAnalysis;
 

@@ -7,11 +7,8 @@ using ImgRepo.Model;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Artist;
 using ImgRepo.Model.Entities.Attributes;
-using ImgRepo.Model.MetaResult;
 using ImgRepo.Model.Query;
 using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace ImgRepo.Service.Implement
 {
@@ -44,7 +41,17 @@ namespace ImgRepo.Service.Implement
             }
 
         }
-
+        class MetaAttributeNameResult
+        {
+            string? _value;
+            public long ObjectId { get; set; }
+            public long AttrType { get; set; }
+            public string Value
+            {
+                get => this._value ?? string.Empty;
+                set => this._value = value;
+            }
+        }
 
         protected IDataSource m_dataSource;
 
@@ -187,7 +194,7 @@ namespace ImgRepo.Service.Implement
         {
             IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
             IQueryable<TAttr> attrs = this.m_dataSource.GetQueryable<TAttr>();
-            var metaQueryable = records
+            IQueryable<MetaAttributeNameResult> metaQueryable = records
                 .Join(attrs,
                     r => r.AttrId,
                     a => a.Id,
@@ -201,101 +208,17 @@ namespace ImgRepo.Service.Implement
             if (exprDatas.IsNullOrEmpty())
                 return metaQueryable.Select(r => r.ObjectId);
 
-            foreach (var exprData in exprDatas)
+            foreach (ExpressionData exprData in exprDatas)
             {
                 exprData.MemberName = "Value";
             }
 
-            var predicate = Predicate.GetExpression<MetaAttributeNameResult>(exprDatas);
+            System.Linq.Expressions.Expression<Func<MetaAttributeNameResult, bool>>? predicate = Predicate.GetExpression<MetaAttributeNameResult>(exprDatas);
 
             if (predicate == null)
                 return metaQueryable.Select(r => r.ObjectId);
 
             return metaQueryable.Where(predicate).Select(r => r.ObjectId);
-        }
-
-        protected IQueryable<long> queryAllAttributes<TObj, TRecord>(IEnumerable<ExpressionData> expressionDatas)
-            where TObj : class, IBasicEntityInformation, new()
-            where TRecord : class, IBasicEntityRecord, new()
-        {
-            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
-            IQueryable<TagInformation> tags = this.m_dataSource.GetQueryable<TagInformation>();
-            IQueryable<CategoryInformation> categories = this.m_dataSource.GetQueryable<CategoryInformation>();
-            IQueryable<WebsiteInformation> websites = this.m_dataSource.GetQueryable<WebsiteInformation>();
-            IQueryable<TObj> objs = this.m_dataSource.GetQueryable<TObj>();
-            var rObjs = records
-                .Join(objs,
-                r => r.ObjectId,
-                o => o.Id, (r, o) => new
-                {
-                    Rid = r.Id,
-                    Oid = o.Id,
-                    OName = o.Name,
-                    AttrId = r.AttrId,
-                    AttrType = r.AttrType,
-                });
-
-            var rTags = rObjs.Where(r => r.AttrType == AttributeType.Tag).Join(tags, r => r.AttrId, t => t.Id, (r, t) => new
-            {
-                Oid = r.Oid,
-                TName = t.Name,
-            });
-            var rCats = rObjs.Where(r => r.AttrType == AttributeType.Category).Join(categories, c => c.AttrId, cat => cat.Id, (c, cat) => new
-            {
-                Oid = c.Oid,
-                CName = cat.Name,
-            });
-            var rWebs = rObjs.Where(r => r.AttrType == AttributeType.Website).Join(websites, w => w.AttrId, web => web.Id, (w, web) => new
-            {
-                Oid = w.Oid,
-                WName = web.Name,
-            });
-
-            IQueryable<MetaAllAttributeName> rAll = rObjs
-                .GroupJoin(rTags, o => o.Oid, t => t.Oid, (o, t) => new
-                {
-                    Oid = o.Oid,
-                    Name = o.OName,
-                    Tags = t
-                })
-                .SelectMany(xy => xy.Tags.DefaultIfEmpty(), (x, y) => new
-                {
-                    Oid = x.Oid,
-                    Name = x.Name,
-                    Tag = y,
-                })
-                .GroupJoin(rCats, o => o.Oid, c => c.Oid, (o, c) => new
-                {
-                    Oid = o.Oid,
-                    Name = o.Name,
-                    Tag = o.Tag,
-                    Cats = c,
-                })
-                .SelectMany(xy => xy.Cats.DefaultIfEmpty(), (x, y) => new
-                {
-                    Oid = x.Oid,
-                    Name = x.Name,
-                    Tag = x.Tag,
-                    Cat = y
-                })
-                .GroupJoin(rWebs, o => o.Oid, w => w.Oid, (o, w) => new
-                {
-                    Oid = o.Oid,
-                    Name = o.Name,
-                    Tag = o.Tag,
-                    Cat = o.Cat,
-                    Webs = w,
-                })
-                .SelectMany(xy => xy.Webs.DefaultIfEmpty(), (x, y) => new MetaAllAttributeName
-                {
-                    ObjectId = x.Oid,
-                    Name = x.Name,
-                    Tag = x.Tag.TName,
-                    Category = x.Cat.CName,
-                    Website = y.WName,
-                });
-
-            return rAll.Where(Predicate.GetExpression<MetaAllAttributeName>(expressionDatas)).Select(x => x.ObjectId);
         }
 
         protected IQueryable<long> getObjectIdsByAttributeExprData<TRecord, TAttr>(long attrType, ExpressionData expressionData, string str)
@@ -304,8 +227,8 @@ namespace ImgRepo.Service.Implement
         {
             Debug.Assert(!str.IsNullOrEmpty());
 
-            var records = this.m_dataSource.GetQueryable<TRecord>().Where(r => r.AttrType == attrType);
-            var attrs = this.m_dataSource.GetQueryable<TAttr>();
+            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>().Where(r => r.AttrType == attrType);
+            IQueryable<TAttr> attrs = this.m_dataSource.GetQueryable<TAttr>();
             var result = records.Join(attrs, r => r.AttrId, a => a.Id, (r, a) => new
             {
                 ObjectId = r.ObjectId,
@@ -404,13 +327,12 @@ namespace ImgRepo.Service.Implement
             else
             {
                 IQueryable<long>? result = null;
-                var conds = queryModel.Conditions;
-                Dictionary<string, ExpressionData> conditions = new();
-                foreach (var cond in conds)
+                ApiCondition[] conds = queryModel.Conditions;
+                foreach (ApiCondition cond in conds)
                 {
+                    if ((CompareType)cond.CompareType == CompareType.None) continue;
                     if (cond.TryGetExpressionData(out ExpressionData? exprData))
                     {
-                        conditions.Add(exprData.MemberName, exprData);
                         if (exprData.ConstantValue is not string str) continue;
                         IQueryable<long>? meta = null;
                         if (exprData.MemberName == "Name")
@@ -421,9 +343,9 @@ namespace ImgRepo.Service.Implement
                                 {
                                     if (str.Contains(','))
                                     {
-                                        var strs = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                        string[] strs = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
                                         IPredicateHolder<TObj>? predicate = null;
-                                        foreach (var s in strs)
+                                        foreach (string s in strs)
                                         {
                                             if (predicate == null)
                                             {

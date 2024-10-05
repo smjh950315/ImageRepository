@@ -1,4 +1,5 @@
-﻿using ImgRepo.Model.Common;
+﻿using Cyh.Net;
+using ImgRepo.Model.Common;
 using ImgRepo.Service;
 using ImgRepo.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -32,12 +33,26 @@ namespace ImgRepo.Web.Controllers
         [HttpPost]
         public IActionResult Upload(WebUploadModel uploadModel)
         {
-            if (uploadModel == null || uploadModel.File == null)
+            if (uploadModel == null || uploadModel.Files.IsNullOrEmpty())
             {
                 this.ModelState.AddModelError("UploadBytes", "Please upload an image");
                 return this.Upload();
             }
-            long newImage = this._imageService.CreateImage(uploadModel);
+            long? newImage = null;
+            if (uploadModel.HasMultipleFiles())
+            {
+                var dtos = uploadModel.GetNewImageDtos();
+                foreach (var img in dtos)
+                {
+                    var imgId = this._imageService.CreateImage(img);
+                    newImage ??= imgId;
+                }
+                return this.RedirectToAction("Index", "Image", new { id = newImage });
+            }
+            else
+            {
+                newImage = this._imageService.CreateImage(uploadModel);
+            }
             return this.RedirectToAction("Index", "Image", new { id = newImage });
         }
     }

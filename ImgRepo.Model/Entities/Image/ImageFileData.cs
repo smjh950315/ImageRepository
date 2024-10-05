@@ -16,11 +16,15 @@ namespace ImgRepo.Model.Entities.Image
         [StringLength(32)]
         public string Format { get; set; } = string.Empty;
 
-        /// <summary>
-        /// 預覽圖像資料(小圖 256x256)
-        /// </summary>
-        public byte[] Thumbnail { get; set; }
+        public int Width { get; set; }
 
-        public byte[] Data { get; set; }
+        public int Height { get; set; }
+
+        public int Channel { get; set; }
+
+        public int FileSize { get; set; }
+
+        [StringLength(1024)]
+        public string Uri { get; set; }
     }
 }
