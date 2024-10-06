@@ -17,7 +17,7 @@ namespace ImgRepo.Model
             {
                 CompareType = (CompareType)queryGroup.CompareType,
                 LinkType = (LinkType)queryGroup.LinkType,
-                MemberName = "Name",
+                MemberName = "Value",
                 ConstantValue = queryGroup.ConstantValue
             };
             return true;

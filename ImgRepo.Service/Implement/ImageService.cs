@@ -71,6 +71,13 @@ namespace ImgRepo.Service.Implement
             this.m_fileAccessService = fileAccessService;
         }
 
+        public double GetImageDifferential(long lhsId, long rhsId)
+        {
+            byte[] lhsFile = this.m_fileAccessService.GetFile(this.m_imagefiles.FirstOrDefault(f => f.Id == lhsId)?.Uri ?? string.Empty);
+            byte[] rhsFile = this.m_fileAccessService.GetFile(this.m_imagefiles.FirstOrDefault(f => f.Id == rhsId)?.Uri ?? string.Empty);
+            return ImageHelperSharp.OpenCVService.GetImageDifferential(lhsFile, rhsFile);
+        }
+
         public long CreateImage(NewImageDto? imageDto)
         {
             if (imageDto == null)

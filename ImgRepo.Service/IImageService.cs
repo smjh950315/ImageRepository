@@ -9,6 +9,14 @@ namespace ImgRepo.Service
     public interface IImageService : ICommonObjectService
     {
         /// <summary>
+        /// 比對兩張圖片差異度
+        /// </summary>
+        /// <param name="lhsId">圖片ID</param>
+        /// <param name="rhsId">圖片ID</param>
+        /// <returns>差異度，如果無法使用回傳小於0的值</returns>
+        double GetImageDifferential(long lhsId, long rhsId);
+
+        /// <summary>
         /// 建立新的圖片
         /// </summary>
         /// <returns>新圖片的ID，如果失敗傳回0，發生例外回傳-1</returns>

@@ -1,10 +1,16 @@
-﻿namespace ImgRepo.Service
+﻿using ImgRepo.Data.Enums;
+using ImgRepo.Model.Entities.Attributes;
+
+namespace ImgRepo.Service
 {
     public static class GlobalSettings
     {
         public static string KeywordSplitter { get; set; }
         static GlobalSettings()
         {
+            AttributeType.RegisterAttributeMetaData<NameInformation>("Name");
+            AttributeType.RegisterAttributeMetaData<TagInformation>("Tag");
+            AttributeType.RegisterAttributeMetaData<CategoryInformation>("Category");
             KeywordSplitter = ",";
         }
     }

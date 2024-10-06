@@ -1,6 +1,4 @@
 ﻿using Cyh.Net.Data;
-using ImgRepo.Data.Enums;
-using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Service.Implement;
 
 namespace ImgRepo.Service
@@ -9,9 +7,6 @@ namespace ImgRepo.Service
     {
         static Factories()
         {
-            AttributeType.RegisterAttributeMetaData<TagInformation>("Tag");
-            AttributeType.RegisterAttributeMetaData<CategoryInformation>("Category");
-            GlobalSettings.KeywordSplitter = " ";
         }
 
         public static IImageService GetImageService(IServiceProvider sp)

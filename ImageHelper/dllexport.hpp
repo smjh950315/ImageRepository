@@ -36,6 +36,11 @@ struct alignas(8) ImInfo {
 #ifdef __cplusplus
 extern "C" {
 #endif
+	__EXPORT _CDECL(void*) c_lang_malloc(size_t _blocksize);
+	__EXPORT _CDECL(void) c_lang_free(void* _block);
+	__EXPORT _CDECL(void*) c_lang_realloc(void* _block, size_t _size);
+
+
 	__EXPORT _CDECL(int) stb_resize(void* data, int length, void* imsize, int channels, void** result, int fix_ratio);
 	__EXPORT _CDECL(void) stb_free(void* data);
 	__EXPORT _CDECL(int) stb_getinfo(void* data, int length, void* iminfo);
@@ -47,7 +52,7 @@ extern "C" {
 	__EXPORT _CDECL(double) cv_get_differential_by_mse(void* lmatptr, void* rmatptr);
 	__EXPORT _CDECL(double) cv_get_differential_by_ssim(void* lmatptr, void* rmatptr);
 	__EXPORT _CDECL(void*) cv_get_differential_bfmatch(void* lmatptr, void* rmatptr);
-
+	__EXPORT _CDECL(int) cv_encode_png_to_c_lang_malloc(void* matptr, void** result);
 #ifdef __cplusplus
 };
 #endif

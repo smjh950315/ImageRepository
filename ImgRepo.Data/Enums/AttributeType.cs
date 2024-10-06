@@ -7,6 +7,7 @@ namespace ImgRepo.Data.Enums
     /// </summary>
     public class AttributeType
     {
+        public const long Name = 0;
         public const long Tag = 1;
         public const long Category = 2;
         public const long Website = 3;
@@ -46,7 +47,7 @@ namespace ImgRepo.Data.Enums
             m_attributeMetaData.Add(attrTypeName, new AttributeMetaData { TypeId = typeId, ModelType = modelType });
         }
 
-        public static void RegisterAttributeMetaData<T>(string attrTypeName) where T : IBasicEntityInformation => RegisterAttributeMetaData(attrTypeName, typeof(T));
+        public static void RegisterAttributeMetaData<T>(string attrTypeName) where T : IBasicEntityAttribute => RegisterAttributeMetaData(attrTypeName, typeof(T));
 
         public static AttributeMetaData? GetAttributeMetaData(string attrTypeName)
         {

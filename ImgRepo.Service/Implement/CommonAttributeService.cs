@@ -24,7 +24,7 @@ namespace ImgRepo.Service.Implement
             return this.m_tags.Select(x => new BasicDetails
             {
                 Id = x.Id,
-                Name = x.Name,
+                Name = x.Value,
                 Description = x.Description
             }).FirstOrDefault(t => t.Id == id);
         }
@@ -34,7 +34,7 @@ namespace ImgRepo.Service.Implement
             return this.m_categories.Select(x => new BasicDetails
             {
                 Id = x.Id,
-                Name = x.Name,
+                Name = x.Value,
                 Description = x.Description
             }).FirstOrDefault(t => t.Id == id);
         }

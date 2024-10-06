@@ -6,13 +6,13 @@ namespace ImgRepo.Model.Entities.Attributes
     /// <summary>
     /// 標籤的資訊
     /// </summary>
-    public class TagInformation : IBasicEntityInformation
+    public class TagInformation : IBasicEntityAttribute
     {
         [Required]
         public long Id { get; set; }
 
         [StringLength(512)]
-        public string Name { get; set; }
+        public string Value { get; set; }
 
         [StringLength(4096)]
         public string? Description { get; set; }

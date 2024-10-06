@@ -14,7 +14,7 @@ namespace ImgRepo.Model.Entities.Artist
         public long ObjectId { get; set; }
 
         /// <summary>
-        /// <seealso cref="Enums.AttributeType"/>
+        /// <seealso cref="Data.Enums.AttributeType"/>
         /// </summary>
         public long AttrType { get; set; }
 

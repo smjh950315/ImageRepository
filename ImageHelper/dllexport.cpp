@@ -38,6 +38,21 @@ if (stbi__##fmt##_info(stb_ctx_ptr, px,py,pc)) \
 { *fmtstr_addr_ptr = (char*)image_format_cstring::##fmt; return 1; }
 
 
+__EXPORT _CDECL(void*) c_lang_malloc(size_t _blocksize)
+{
+	return malloc(_blocksize);
+}
+
+__EXPORT _CDECL(void) c_lang_free(void* _block)
+{
+	free(_block);
+}
+
+__EXPORT _CDECL(void*) c_lang_realloc(void* _block, size_t _size)
+{
+	return realloc(_block, _size);
+}
+
 __EXPORT _CDECL(int) stb_resize(void* data, int length, void* imsize, int channels, void** result, int fix_ratio)
 {
 	if (data == nullptr || length <= 0 || imsize == nullptr || result == nullptr) return -1;
@@ -71,8 +86,6 @@ __EXPORT _CDECL(int) stb_resize(void* data, int length, void* imsize, int channe
 			width = static_cast<int>((double)ori_width * ratio_h);
 		}
 	}
-
-
 
 	stbir_pixel_layout layout;
 	switch (out_comp)
@@ -327,5 +340,28 @@ __EXPORT _CDECL(void*) cv_get_differential_bfmatch(void* lmatptr, void* rmatptr)
 		return pmat;
 	}
 	return nullptr;
+}
+
+__EXPORT _CDECL(int) cv_encode_png_to_c_lang_malloc(void* matptr, void** result)
+{
+	if (matptr != nullptr && result != nullptr) {
+		cv::Mat* pmat = (cv::Mat*)matptr;
+		std::vector<uchar> buffer;
+		try {
+			cv::imencode(".png", *pmat, buffer);
+		} catch (const std::exception& ex){
+			printf(ex.what());
+			return 0;
+		}
+		void* ptr = nullptr;
+		if (buffer.size() != 0) {
+			ptr = c_lang_malloc(buffer.size());
+		} 
+		if (ptr == nullptr) return 0;
+		*result = ptr;
+		memcpy(*result, buffer.data(), buffer.size());
+		return static_cast<int>(buffer.size());
+	}
+	return 0;
 }
 

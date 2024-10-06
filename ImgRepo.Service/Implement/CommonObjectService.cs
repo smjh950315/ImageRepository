@@ -113,6 +113,7 @@ namespace ImgRepo.Service.Implement
         public IEnumerable<long> GetIdsByQueryModel(QueryModel? queryModel, DataRange? range = null)
         {
             if (queryModel == null) return Enumerable.Empty<long>();
+
             IQueryable<long> ids = this.queryAllAttributes<TObject, TRecord>(queryModel).Distinct();
             if (range != null)
             {

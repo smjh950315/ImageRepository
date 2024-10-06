@@ -5,12 +5,9 @@ using ImgRepo.Data.Enums;
 using ImgRepo.Data.Interface;
 using ImgRepo.Model;
 using ImgRepo.Model.Common;
-using ImgRepo.Model.Entities.Artist;
-using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Model.Query;
 using System.Diagnostics;
 using System.Reflection;
-using System.Xml.Linq;
 
 namespace ImgRepo.Service.Implement
 {
@@ -71,7 +68,9 @@ namespace ImgRepo.Service.Implement
             this.m_dataSource = dataSource;
         }
 
-        protected long setObjectAttrData<TRecord, TAttr>(long objectId, long attrType, string attrName, bool _delete) where TRecord : class, IBasicEntityRecord, new() where TAttr : class, IBasicEntityInformation, new()
+        protected long setObjectAttrData<TRecord, TAttr>(long objectId, long attrType, string attrValue, bool _delete)
+            where TRecord : class, IBasicEntityRecord, new() 
+            where TAttr : class, IBasicEntityAttribute, new()
         {
             // no image
             if (objectId == 0) return 0;
@@ -81,7 +80,7 @@ namespace ImgRepo.Service.Implement
             IDataWriter<TAttr> attrWriter = this.m_dataSource.GetWriter<TAttr>();
             IDataWriter<TRecord> recordWriter = this.m_dataSource.GetWriter<TRecord>();
 
-            TAttr? attr = attrs.FirstOrDefault(a => a.Name == attrName);
+            TAttr? attr = attrs.FirstOrDefault(a => a.Value == attrValue);
 
             if (_delete)
             {
@@ -112,7 +111,7 @@ namespace ImgRepo.Service.Implement
                     // no attr, create attr and record
                     attr = new TAttr
                     {
-                        Name = attrName,
+                        Value = attrValue,
                         Created = DateTime.Now,
                     };
                     attrWriter.Add(attr);
@@ -151,18 +150,20 @@ namespace ImgRepo.Service.Implement
             }
         }
 
-        protected long setObjectAttr<TObj, TRecord, TAttr>(long objectId, long attrType, string attrName, bool _delete)
+        protected long setObjectAttr<TObj, TRecord, TAttr>(long objectId, long attrType, string attrValue, bool _delete)
             where TObj : class, IBasicEntityInformation, new()
             where TRecord : class, IBasicEntityRecord, new()
-            where TAttr : class, IBasicEntityInformation, new()
+            where TAttr : class, IBasicEntityAttribute, new()
         {
             if (objectId == 0) return 0;
             IQueryable<TObj> objs = this.m_dataSource.GetQueryable<TObj>();
             if (!objs.Any(o => o.Id == objectId)) return 0;
-            return this.setObjectAttrData<TRecord, TAttr>(objectId, attrType, attrName, _delete);
+            return this.setObjectAttrData<TRecord, TAttr>(objectId, attrType, attrValue, _delete);
         }
 
-        protected IEnumerable<BasicInfo> getObjectAttrInfos<TRecord, TAttr>(long objectId, long attrType) where TRecord : class, IBasicEntityRecord, new() where TAttr : class, IBasicEntityInformation, new()
+        protected IEnumerable<BasicInfo> getObjectAttrInfos<TRecord, TAttr>(long objectId, long attrType)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttr : class, IBasicEntityAttribute, new()
         {
             IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
             IQueryable<TAttr> attrs = this.m_dataSource.GetQueryable<TAttr>();
@@ -172,7 +173,7 @@ namespace ImgRepo.Service.Implement
                    select new BasicInfo
                    {
                        Id = a.Id,
-                       Name = a.Name,
+                       Name = a.Value,
                    };
         }
 
@@ -201,7 +202,7 @@ namespace ImgRepo.Service.Implement
         protected IQueryable<long> getObjectIdsByAttrName<TObj, TRecord, TAttr>(long attrType, IEnumerable<ExpressionData> exprDatas)
             where TObj : class, IBasicEntityInformation, new()
             where TRecord : class, IBasicEntityRecord, new()
-            where TAttr : class, IBasicEntityInformation, new()
+            where TAttr : class, IBasicEntityAttribute, new()
         {
             IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
             IQueryable<TAttr> attrs = this.m_dataSource.GetQueryable<TAttr>();
@@ -213,7 +214,7 @@ namespace ImgRepo.Service.Implement
                     {
                         ObjectId = r.ObjectId,
                         AttrType = r.AttrType,
-                        Value = a.Name
+                        Value = a.Value
                     }).Where(r => r.AttrType == attrType);
 
             if (exprDatas.IsNullOrEmpty())
@@ -234,7 +235,7 @@ namespace ImgRepo.Service.Implement
 
         protected IQueryable<long> getObjectIdsByAttributeExprData<TRecord, TAttr>(long attrType, ExpressionData expressionData, string str)
             where TRecord : class, IBasicEntityRecord, new()
-            where TAttr : class, IBasicEntityInformation, new()
+            where TAttr : class, IBasicEntityAttribute, new()
         {
             Debug.Assert(!str.IsNullOrEmpty());
 
@@ -244,7 +245,7 @@ namespace ImgRepo.Service.Implement
             {
                 ObjectId = r.ObjectId,
                 AttrId = a.Id,
-                AttrName = a.Name,
+                AttrName = a.Value,
             });
             var originalGroups = result.GroupBy(x => x.ObjectId);
             string name = str;
@@ -442,22 +443,6 @@ namespace ImgRepo.Service.Implement
                             var genericMethod = method_IdsByAttributeBase.MakeGenericMethod(typeof(TRecord), attrMetaData.ModelType);
                             meta = (IQueryable<long>?)genericMethod.Invoke(this, [attrMetaData.TypeId, exprData, str]);
                         }
-                        //else if (cond.Type == "Tag")
-                        //{
-                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, TagInformation>(AttributeType.Tag, exprData, str);
-                        //}
-                        //else if (cond.Type == "Category")
-                        //{
-                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, CategoryInformation>(AttributeType.Category, exprData, str);
-                        //}
-                        //else if (cond.Type == "Website")
-                        //{
-                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, WebsiteInformation>(AttributeType.Website, exprData, str);
-                        //}
-                        //else if (cond.Type == "Artist")
-                        //{
-                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, ArtistInformation>(0, exprData, str);
-                        //}
                         if (meta != null)
                         {
                             result = result != null
