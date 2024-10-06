@@ -17,8 +17,6 @@ namespace ImgRepo.Data.Enums
 
         static Dictionary<string, AttributeMetaData> m_attributeMetaData;
 
-        static Dictionary<Type, long> m_attributeModelIdCache;
-
         static AttributeType()
         {
             m_typeNameIdRecords ??= new();
@@ -28,7 +26,6 @@ namespace ImgRepo.Data.Enums
                 .ToList()
                 .ForEach(f => m_typeNameIdRecords.Add(f.Name.ToLower(), (long)f.GetValue(null)!));
             m_attributeMetaData ??= new();
-            m_attributeModelIdCache ??= new();
         }
 
         public static void RegisterAttributeMetaData(string attrTypeName, Type modelType)
@@ -40,8 +37,11 @@ namespace ImgRepo.Data.Enums
                 throw new ArgumentException($"Attribute type name '{attrTypeName}' is not found.");
             }
             if (m_attributeMetaData.ContainsKey(_attrTypeName)) return;
-            m_attributeMetaData.Add(_attrTypeName, new AttributeMetaData { TypeId = typeId, ModelType = modelType });
-            m_attributeModelIdCache[modelType] = typeId;
+            m_attributeMetaData.Add(_attrTypeName, new AttributeMetaData
+            {
+                TypeId = typeId,
+                ModelType = modelType
+            });
         }
 
         public static void RegisterAttributeMetaData<T>(string attrTypeName) where T : IBasicEntityAttribute => RegisterAttributeMetaData(attrTypeName, typeof(T));
@@ -49,31 +49,28 @@ namespace ImgRepo.Data.Enums
 
         public static long GetAttributeTypeId(string attrTypeName)
         {
-            if (m_typeNameIdRecords.TryGetValue(attrTypeName.ToLower(), out long typeId))
-            {
-                return typeId;
-            }
-            return Invalid;
+            return m_typeNameIdRecords.TryGetValue(attrTypeName.ToLower(), out long typeId) ? typeId : Invalid;
         }
 
         public static long GetAttributeTypeId(Type modelType)
         {
-            if (m_attributeModelIdCache.TryGetValue(modelType, out long typeId))
-            {
-                return typeId;
-            }
-            return 0;
+            return m_attributeMetaData.Values.FirstOrDefault(x => x.ModelType == modelType)?.TypeId ?? Invalid;
         }
 
         public static long GetAttributeTypeId<T>() => GetAttributeTypeId(typeof(T));
 
         public static AttributeMetaData? GetAttributeMetaData(string attrTypeName)
         {
-            if (m_attributeMetaData.TryGetValue(attrTypeName, out AttributeMetaData? metaData))
-            {
-                return metaData;
-            }
-            return null;
+            return m_attributeMetaData.TryGetValue(attrTypeName, out AttributeMetaData? metaData) ? metaData : null;
+        }
+
+        public static Type? GetAttributeType(long attrTypeId)
+        {
+            return m_attributeMetaData.Values.FirstOrDefault(m => m.TypeId == attrTypeId)?.ModelType;
+        }
+        public static Type? GetAttributeType(string attrTypeName)
+        {
+            return GetAttributeType(GetAttributeTypeId(attrTypeName));
         }
     }
 }

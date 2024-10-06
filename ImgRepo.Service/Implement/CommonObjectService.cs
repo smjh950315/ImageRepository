@@ -1,6 +1,5 @@
 ﻿using Cyh.Net.Data;
 using Cyh.Net.Data.Predicate;
-using ImgRepo.Data.Enums;
 using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Attributes;
@@ -8,52 +7,30 @@ using ImgRepo.Model.Query;
 
 namespace ImgRepo.Service.Implement
 {
-    internal abstract class CommonObjectService<TObject, TRecord> : CommonService, ICommonObjectService
+    internal class CommonObjectService<TObject, TRecord> : CommonObjectServiceBase, ICommonObjectService
         where TObject : class, IBasicEntityInformation, new()
         where TRecord : class, IBasicEntityRecord, new()
     {
         protected override Type ObjectType => typeof(TObject);
         protected override Type RecordType => typeof(TRecord);
 
-        public CommonObjectService(IDataSource dataSource) : base(dataSource) 
+        public CommonObjectService(IDataSource dataSource) : base(dataSource)
         {
         }
 
-        public virtual long RemoveObject(long objectId)
-        {
-            return this.removeObject<TObject>(objectId);
-        }
+        public virtual long RemoveObject(long objectId) => this.Remove(objectId);
 
-        public long AddWebsite(long objectId, string webSite)
-        {
-            return this.setObjectAttr<TObject, TRecord, CategoryInformation>(objectId, AttributeType.Website, webSite, false);
-        }
+        public long AddWebsite(long objectId, string webSite) => this.AddAttribute<WebsiteInformation>(objectId, webSite);
 
-        public long RemoveWebsite(long objectId, string webSite)
-        {
-            return this.setObjectAttr<TObject, TRecord, CategoryInformation>(objectId, AttributeType.Website, webSite, true);
-        }
+        public long RemoveWebsite(long objectId, string webSite) => this.RemoveAttribute<WebsiteInformation>(objectId, webSite);
 
-        public long AddCategory(long objectId, string categoryName)
-        {
-            return this.setObjectAttr<TObject, TRecord, CategoryInformation>(objectId, AttributeType.Category, categoryName, false);
-        }
+        public long AddCategory(long objectId, string categoryName) => this.AddAttribute<CategoryInformation>(objectId, categoryName);
 
-        public long RemoveCategory(long objectId, string categoryName)
-        {
-            return this.setObjectAttr<TObject, TRecord, CategoryInformation>(objectId, AttributeType.Category, categoryName, true);
-        }
+        public long RemoveCategory(long objectId, string categoryName) => this.RemoveAttribute<CategoryInformation>(objectId, categoryName);
 
-        public long AddTag(long objectId, string tagName)
-        {
-            //return this.setObjectAttr<TObject, TRecord, TagInformation>(objectId, AttributeType.Tag, tagName, false);
-            return this.SetObjectAttributeData<TagInformation>(objectId, tagName, false);
-        }
+        public long AddTag(long objectId, string tagName) => this.AddAttribute<TagInformation>(objectId, tagName);
 
-        public long RemoveTag(long objectId, string tagName)
-        {
-            return this.setObjectAttr<TObject, TRecord, TagInformation>(objectId, AttributeType.Tag, tagName, true);
-        }
+        public long RemoveTag(long objectId, string tagName) => this.RemoveAttribute<TagInformation>(objectId, tagName);
 
         public BasicDetails? GetBasicDetails(long objectId)
         {
@@ -68,41 +45,20 @@ namespace ImgRepo.Service.Implement
             };
         }
 
-        public IEnumerable<BasicInfo> GetTags(long objectId) => this.GetObjectAttributeInformations<TagInformation>(objectId);
+        public IEnumerable<BasicInfo> GetTags(long objectId) => this.GetAttributes<TagInformation>(objectId);
 
-        public IEnumerable<BasicInfo> GetCategories(long objectId) => this.GetObjectAttributeInformations<CategoryInformation>(objectId);
+        public IEnumerable<BasicInfo> GetCategories(long objectId) => this.GetAttributes<CategoryInformation>(objectId);
 
-        public IEnumerable<BasicInfo> GetWebsites(long objectId) => this.GetObjectAttributeInformations<WebsiteInformation>(objectId);
+        public IEnumerable<BasicInfo> GetWebsites(long objectId) => this.GetAttributes<WebsiteInformation>(objectId);
 
         public IEnumerable<long> GetIdsByTagName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
-        {
-            IQueryable<long> ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Tag, exprDatas);
-            if (range != null)
-            {
-                return ids.Skip(range.Begin).Take(range.Count).ToList();
-            }
-            return ids.ToList();
-        }
+            => this.GetIdsByAttributeName<TagInformation>(exprDatas, range);
 
         public IEnumerable<long> GetIdsByCategoryName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
-        {
-            IQueryable<long> ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Category, exprDatas);
-            if (range != null)
-            {
-                return ids.Skip(range.Begin).Take(range.Count).ToList();
-            }
-            return ids.ToList();
-        }
+            => this.GetIdsByAttributeName<CategoryInformation>(exprDatas, range);
 
         public IEnumerable<long> GetIdsByWebsiteName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
-        {
-            IQueryable<long> ids = this.getObjectIdsByAttrName<TObject, TRecord, TagInformation>(AttributeType.Website, exprDatas);
-            if (range != null)
-            {
-                return ids.Skip(range.Begin).Take(range.Count).ToList();
-            }
-            return ids.ToList();
-        }
+            => this.GetIdsByAttributeName<WebsiteInformation>(exprDatas, range);
 
         public IEnumerable<long> GetIdsByQueryModel(QueryModel? queryModel, DataRange? range = null)
         {

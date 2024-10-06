@@ -2,7 +2,6 @@
 using Cyh.Net.Data;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Artist;
-using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service.Implement
@@ -58,10 +57,7 @@ namespace ImgRepo.Service.Implement
             return artistId;
         }
 
-        public long RenameArtist(long artistId, string newName)
-        {
-            return this.renameObject<ArtistInformation>(artistId, newName);
-        }
+        public long RenameArtist(long artistId, string newName) => this.Rename(artistId, newName);
 
         public IEnumerable<BasicDetails>? GetArtistDetails(string artistName)
         {

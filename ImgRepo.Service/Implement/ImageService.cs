@@ -159,14 +159,11 @@ namespace ImgRepo.Service.Implement
             return image.Id;
         }
 
-        public long RenameImage(long imageId, string newName)
-        {
-            return this.renameObject<ImageInformation>(imageId, newName);
-        }
+        public long RenameImage(long imageId, string newName) => this.Rename(imageId, newName);
 
         public override long RemoveObject(long imageId)
         {
-            long removedId = this.removeObject<ImageInformation>(imageId);
+            long removedId = this.Remove(imageId);
             if (removedId <= 0) return removedId;
             ImageFileData? imageFile = this.m_imagefiles.FirstOrDefault(f => f.Id == removedId);
             if (imageFile == null) return removedId;
