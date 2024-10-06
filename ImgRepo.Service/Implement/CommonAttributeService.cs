@@ -4,15 +4,17 @@ using ImgRepo.Model.Entities.Attributes;
 
 namespace ImgRepo.Service.Implement
 {
-    internal class CommonAttributeService : CommonService, ICommonAttributeService
+    internal class CommonAttributeService : ICommonAttributeService
     {
+        IDataSource m_dataSource;
         IQueryable<TagInformation> m_tags;
         IDataWriter<TagInformation> m_tagWriter;
         IQueryable<CategoryInformation> m_categories;
         IDataWriter<CategoryInformation> m_categoryWriter;
 
-        public CommonAttributeService(IDataSource dataSource) : base(dataSource)
+        public CommonAttributeService(IDataSource dataSource)
         {
+            this.m_dataSource = dataSource;
             this.m_tags = dataSource.GetQueryable<TagInformation>();
             this.m_tagWriter = dataSource.GetWriter<TagInformation>();
             this.m_categories = dataSource.GetQueryable<CategoryInformation>();

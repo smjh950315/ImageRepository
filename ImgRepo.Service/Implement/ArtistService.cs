@@ -2,6 +2,7 @@
 using Cyh.Net.Data;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Entities.Artist;
+using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service.Implement

@@ -20,6 +20,11 @@ namespace ImgRepo.Web.Controllers
             return this.View();
         }
 
+        public IActionResult ImageBrowse()
+        {
+            return this.View();
+        }
+
         public IActionResult Privacy()
         {
             return this.View();

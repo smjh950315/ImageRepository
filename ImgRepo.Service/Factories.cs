@@ -1,4 +1,6 @@
 ﻿using Cyh.Net.Data;
+using ImgRepo.Data.Enums;
+using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Service.Implement;
 
 namespace ImgRepo.Service
@@ -7,6 +9,9 @@ namespace ImgRepo.Service
     {
         static Factories()
         {
+            AttributeType.RegisterAttributeMetaData<NameInformation>("Name");
+            AttributeType.RegisterAttributeMetaData<TagInformation>("Tag");
+            AttributeType.RegisterAttributeMetaData<CategoryInformation>("Category");
         }
 
         public static IImageService GetImageService(IServiceProvider sp)

@@ -11,13 +11,25 @@ using System.Reflection;
 
 namespace ImgRepo.Service.Implement
 {
-    internal class CommonService
+    internal abstract class CommonService
     {
         static Dictionary<string, MethodInfo> m_methodCache;
+        static Dictionary<string, MethodInfo> MethodImpls;
+
         static CommonService()
         {
             m_methodCache = new();
-            foreach (MethodInfo method in typeof(CommonService).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+
+            MethodImpls = new();
+            string implPrefix = "Impl_";
+            var methodImpls = typeof(CommonService).GetMethods(BindingFlags.NonPublic | BindingFlags.Static);
+            foreach (MethodInfo method in methodImpls)
+            {
+                if (!method.Name.Contains(implPrefix)) continue;
+                MethodImpls[method.Name] = method;
+            }
+
+            foreach (MethodInfo method in typeof(CommonService).GetMethods(BindingFlags.NonPublic | BindingFlags.Static))
             {
                 m_methodCache[method.Name] = method;
             }
@@ -61,6 +73,143 @@ namespace ImgRepo.Service.Implement
             }
         }
 
+        static object? InvokeStaticWithCommonSerivce(MethodInfo method, CommonService commonService, params object[] parameters)
+        {
+            var _parameters = new object[parameters.Length + 1];
+            _parameters[0] = commonService;
+            parameters.CopyTo(_parameters, 1);
+            return method.Invoke(null, _parameters);
+        }
+
+        static object? CallStaticMethod(CommonService instance, string methodName, object[] parameters)
+        {
+            if (MethodImpls.TryGetValue(methodName, out MethodInfo? method))
+            {
+                return InvokeStaticWithCommonSerivce(method, instance, parameters);
+            }
+            return null;
+        }
+
+        static object? CallStaticGenericMethod(Type[] genericParameters, CommonService instance, string methodName, object[] parameters)
+        {
+            if (MethodImpls.TryGetValue(methodName, out MethodInfo? method))
+            {
+                if (method.IsGenericMethod)
+                {
+                    MethodInfo genericMethod = method.MakeGenericMethod(genericParameters);
+                    return InvokeStaticWithCommonSerivce(genericMethod, instance, parameters);
+                }
+            }
+            return null;
+        }
+
+        static long Impl_SetObjectAttributeData<TObject, TRecord, TAttribute>(CommonService commonService, long objectId, string attrValue, bool _delete)
+            where TObject : class, IBasicEntityInformation, new()
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            // no object
+            if (objectId == 0) return 0;
+            IDataSource dataSource = commonService.m_dataSource;
+            IQueryable<TObject> objs = dataSource.GetQueryable<TObject>();
+            IQueryable<TAttribute> attrs = dataSource.GetQueryable<TAttribute>();
+            IQueryable<TRecord> records = dataSource.GetQueryable<TRecord>();
+            IDataWriter<TAttribute> attrWriter = dataSource.GetWriter<TAttribute>();
+            IDataWriter<TRecord> recordWriter = dataSource.GetWriter<TRecord>();
+
+            TAttribute? attr = attrs.FirstOrDefault(a => a.Value == attrValue);
+
+            long attributeTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
+            if (attributeTypeId == 0) return 0;
+
+            if (_delete)
+            {
+                if (attr == null)
+                {
+                    // no attr, nothing to do
+                    return 0;
+                }
+                else
+                {
+                    // has attr, remove record
+                    TRecord? record = records.FirstOrDefault(r => r.ObjectId == objectId && r.AttrId == attr.Id);
+                    if (record != null)
+                    {
+                        recordWriter.Remove(record);
+                        if (!Lib.TryExecute(() => dataSource.Save()))
+                        {
+                            return -1;
+                        }
+                    }
+                    return attr.Id;
+                }
+            }
+            else
+            {
+                if (attr == null)
+                {
+                    // no attr, create attr and record
+                    attr = new TAttribute
+                    {
+                        Value = attrValue,
+                        Created = DateTime.Now,
+                    };
+                    attrWriter.Add(attr);
+                    if (!Lib.TryExecute(() => dataSource.Save()))
+                    {
+                        return -1;
+                    }
+                    TRecord record = new TRecord
+                    {
+                        ObjectId = objectId,
+                        AttrId = attr.Id,
+                        AttrType = attributeTypeId,
+                    };
+                    recordWriter.Add(record);
+                    if (!Lib.TryExecute(() => dataSource.Save()))
+                    {
+                        return -1;
+                    }
+                }
+                else
+                {
+                    // has attr, create record
+                    TRecord record = new TRecord
+                    {
+                        ObjectId = objectId,
+                        AttrId = attr.Id,
+                        AttrType = attributeTypeId,
+                    };
+                    recordWriter.Add(record);
+                    if (!Lib.TryExecute(() => dataSource.Save()))
+                    {
+                        return -1;
+                    }
+                }
+                return attr.Id;
+            }
+        }
+
+        static IEnumerable<BasicInfo> Impl_GetObjectAttributeInformations<TRecord, TAttribute>(CommonService commonService, long objectId)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            long attrType = AttributeType.GetAttributeTypeId<TAttribute>();
+            IQueryable<TRecord> records = commonService.m_dataSource.GetQueryable<TRecord>();
+            IQueryable<TAttribute> attrs = commonService.m_dataSource.GetQueryable<TAttribute>();
+            return from r in records
+                   join a in attrs on r.AttrId equals a.Id
+                   where r.ObjectId == objectId && r.AttrType == attrType
+                   select new BasicInfo
+                   {
+                       Id = a.Id,
+                       Name = a.Value,
+                   };
+        }
+
+        protected abstract Type ObjectType { get; }
+        protected abstract Type RecordType { get; }
+
         protected IDataSource m_dataSource;
 
         protected CommonService(IDataSource dataSource)
@@ -68,8 +217,26 @@ namespace ImgRepo.Service.Implement
             this.m_dataSource = dataSource;
         }
 
+        public long SetObjectAttributeData<TAttribute>(long objectId, string attrValue, bool _delete)
+        {
+            if (objectId == 0) return 0;
+            return (long)CallStaticGenericMethod(
+                [this.ObjectType, this.RecordType, typeof(TAttribute)],
+                this, "Impl_SetObjectAttributeData",
+                [objectId, attrValue, _delete])!;
+        }
+
+        public IEnumerable<BasicInfo> GetObjectAttributeInformations<TAttribute>(long objectId)
+        {
+            if (objectId == 0) return Enumerable.Empty<BasicInfo>();
+            return (IEnumerable<BasicInfo>)CallStaticGenericMethod(
+                [this.RecordType, typeof(TAttribute)],
+                this, "Impl_GetObjectAttributeInformations",
+                [objectId])!;
+        }
+
         protected long setObjectAttrData<TRecord, TAttr>(long objectId, long attrType, string attrValue, bool _delete)
-            where TRecord : class, IBasicEntityRecord, new() 
+            where TRecord : class, IBasicEntityRecord, new()
             where TAttr : class, IBasicEntityAttribute, new()
         {
             // no image
@@ -150,16 +317,17 @@ namespace ImgRepo.Service.Implement
             }
         }
 
-        protected long setObjectAttr<TObj, TRecord, TAttr>(long objectId, long attrType, string attrValue, bool _delete)
-            where TObj : class, IBasicEntityInformation, new()
+        protected long setObjectAttr<TObject, TRecord, TAttr>(long objectId, long attrType, string attrValue, bool _delete)
+            where TObject : class, IBasicEntityInformation, new()
             where TRecord : class, IBasicEntityRecord, new()
             where TAttr : class, IBasicEntityAttribute, new()
         {
             if (objectId == 0) return 0;
-            IQueryable<TObj> objs = this.m_dataSource.GetQueryable<TObj>();
+            IQueryable<TObject> objs = this.m_dataSource.GetQueryable<TObject>();
             if (!objs.Any(o => o.Id == objectId)) return 0;
             return this.setObjectAttrData<TRecord, TAttr>(objectId, attrType, attrValue, _delete);
         }
+
 
         protected IEnumerable<BasicInfo> getObjectAttrInfos<TRecord, TAttr>(long objectId, long attrType)
             where TRecord : class, IBasicEntityRecord, new()

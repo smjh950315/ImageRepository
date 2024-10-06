@@ -8,11 +8,16 @@ using ImgRepo.Model.Query;
 
 namespace ImgRepo.Service.Implement
 {
-    internal class CommonObjectService<TObject, TRecord> : CommonService, ICommonObjectService
+    internal abstract class CommonObjectService<TObject, TRecord> : CommonService, ICommonObjectService
         where TObject : class, IBasicEntityInformation, new()
         where TRecord : class, IBasicEntityRecord, new()
     {
-        public CommonObjectService(IDataSource dataSource) : base(dataSource) { }
+        protected override Type ObjectType => typeof(TObject);
+        protected override Type RecordType => typeof(TRecord);
+
+        public CommonObjectService(IDataSource dataSource) : base(dataSource) 
+        {
+        }
 
         public virtual long RemoveObject(long objectId)
         {
@@ -41,7 +46,8 @@ namespace ImgRepo.Service.Implement
 
         public long AddTag(long objectId, string tagName)
         {
-            return this.setObjectAttr<TObject, TRecord, TagInformation>(objectId, AttributeType.Tag, tagName, false);
+            //return this.setObjectAttr<TObject, TRecord, TagInformation>(objectId, AttributeType.Tag, tagName, false);
+            return this.SetObjectAttributeData<TagInformation>(objectId, tagName, false);
         }
 
         public long RemoveTag(long objectId, string tagName)
@@ -62,23 +68,11 @@ namespace ImgRepo.Service.Implement
             };
         }
 
-        public IEnumerable<BasicInfo> GetTags(long objectId)
-        {
-            if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getObjectAttrInfos<TRecord, TagInformation>(objectId, AttributeType.Tag);
-        }
+        public IEnumerable<BasicInfo> GetTags(long objectId) => this.GetObjectAttributeInformations<TagInformation>(objectId);
 
-        public IEnumerable<BasicInfo> GetCategories(long objectId)
-        {
-            if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getObjectAttrInfos<TRecord, CategoryInformation>(objectId, AttributeType.Category);
-        }
+        public IEnumerable<BasicInfo> GetCategories(long objectId) => this.GetObjectAttributeInformations<CategoryInformation>(objectId);
 
-        public IEnumerable<BasicInfo> GetWebsites(long objectId)
-        {
-            if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return this.getObjectAttrInfos<TRecord, WebsiteInformation>(objectId, AttributeType.Website);
-        }
+        public IEnumerable<BasicInfo> GetWebsites(long objectId) => this.GetObjectAttributeInformations<WebsiteInformation>(objectId);
 
         public IEnumerable<long> GetIdsByTagName(IEnumerable<ExpressionData> exprDatas, DataRange? range = null)
         {

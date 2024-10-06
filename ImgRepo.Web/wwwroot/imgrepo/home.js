@@ -1,5 +1,5 @@
 ﻿/// <reference path="common.js" />
-class ImgRepoIndexHelper {
+class ImgRepoImageBrowseHelper {
     static CreateThumbItem(x) {
         let newItem = document.createElement("a");
         let item = $(newItem);
@@ -16,7 +16,7 @@ class ImgRepoIndexHelper {
         ImgRepoCommon.HttpPost(_baseUrl + `api/query/image/thumbnails/`, queryModel, (data) => {
             container.html("");
             data.forEach(x => {
-                container.append(ImgRepoIndexHelper.CreateThumbItem(x));
+                container.append(ImgRepoImageBrowseHelper.CreateThumbItem(x));
             });
         }, (err) => {
             console.log(err);
