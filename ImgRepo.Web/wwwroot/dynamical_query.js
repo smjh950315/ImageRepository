@@ -6,10 +6,12 @@ class DynamicalQueryConstant {
     ]
     static operator = [
         { value: 0, text: '' },
-        { value: 1, text: '等於' },
-        { value: 2, text: '不等於' },
-        { value: 7, text: '至少包含' },
-        { value: 8, text: '屬於任一' },
+        { value: 1, text: '完全等於關鍵字' },
+        { value: 2, text: '不完全等於關鍵字' },
+        { value: 7, text: '最少包含所有關鍵字' },
+        { value: 8, text: '包含任一關鍵字' },
+        { value: 9, text: '文字內至少包含有任一關鍵字' },
+        { value: 10, text: '文字被包含在任一個關鍵字內' },
     ]
     static names = [
         { value: 'name', text: '名稱' },
@@ -130,10 +132,10 @@ class DynamicalQueryConstant {
         let trs = $(elem).closest('tbody').find('tr');
         trs.each(function (index) {
             let item = trs[index];
-            let name = $(item).find('.dynamical-query-name-selection').val();
-            if (name == undefined) return;
-            if (!name) {
-                alert('請輸入條件名稱');
+            let type = $(item).find('.dynamical-query-name-selection').val();
+            if (type == undefined) return;
+            if (!type) {
+                alert('請輸入條件類型');
                 return;
             }
             let operator = $(item).find('.dynamical-query-operator-selection').val();
@@ -144,7 +146,7 @@ class DynamicalQueryConstant {
                 alert('請輸入條件值');
                 return;
             }
-            conditions.push({ name: name, operator: Number(operator), operand: Number(operand), constant: constant });
+            conditions.push({ type: type, operator: Number(operator), operand: Number(operand), constant: constant });
         });
         console.log(conditions);
         return conditions;

@@ -1,10 +1,19 @@
 ﻿using Cyh.Net.Data;
+using ImgRepo.Data.Enums;
+using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Service.Implement;
 
 namespace ImgRepo.Service
 {
     public static class Factories
     {
+        static Factories()
+        {
+            AttributeType.RegisterAttributeMetaData<TagInformation>("Tag");
+            AttributeType.RegisterAttributeMetaData<CategoryInformation>("Category");
+            GlobalSettings.KeywordSplitter = " ";
+        }
+
         public static IImageService GetImageService(IServiceProvider sp)
         {
             object? dataSource = sp.GetService(typeof(IDataSource));
@@ -15,6 +24,7 @@ namespace ImgRepo.Service
             }
             throw new Exception("IDataSource not found");
         }
+
         public static IArtistService GetArtistService(IServiceProvider sp)
         {
             object? dataSource = sp.GetService(typeof(IDataSource));
@@ -25,6 +35,7 @@ namespace ImgRepo.Service
             }
             throw new Exception("IDataSource not found");
         }
+
         public static ICommonAttributeService GetCommonAttributeService(IServiceProvider sp)
         {
             object? dataSource = sp.GetService(typeof(IDataSource));
@@ -34,6 +45,7 @@ namespace ImgRepo.Service
             }
             throw new Exception("IDataSource not found");
         }
+
         public static IFileAccessService GetFileAccessService(IServiceProvider sp, string baseUri)
         {
             return new FileAccessService(baseUri);

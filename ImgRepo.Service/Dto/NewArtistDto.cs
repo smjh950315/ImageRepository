@@ -16,8 +16,8 @@ namespace ImgRepo.Service.Dto
         {
             this.ArtistName = uploadModel.Name;
             this.Description = uploadModel.Description;
-            this.Tags = uploadModel.Tags.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Tags.Split(',');
-            this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(',');
+            this.Tags = uploadModel.Tags.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Tags.Split(GlobalSettings.KeywordSplitter);
+            this.Categories = uploadModel.Categories.IsNullOrEmpty() ? Array.Empty<string>() : uploadModel.Categories.Split(GlobalSettings.KeywordSplitter);
             this.NickNames = nickNames;
             this.Websites = websites;
         }

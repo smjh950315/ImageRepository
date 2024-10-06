@@ -32,7 +32,7 @@ namespace ImgRepo.Service.Dto
         {
         }
         NewImageDto(IBasicUploadModel uploadModel, string filename, byte[] binaryData)
-            : this(uploadModel, filename, binaryData, uploadModel.Tags.SplitNoThrow(','), uploadModel.Categories.SplitNoThrow(','))
+            : this(uploadModel, filename, binaryData, uploadModel.Tags.SplitNoThrow(GlobalSettings.KeywordSplitter), uploadModel.Categories.SplitNoThrow(GlobalSettings.KeywordSplitter))
         {
         }
 

@@ -29,8 +29,8 @@ namespace ImageHelperSharp
             byte[] ltemp = StbService.Resize(lhs, 256, 256, 0, false);
             byte[] rtemp = StbService.Resize(rhs, 256, 256, 0, false);
 
-            nint lmat = cv_get_matrix(ltemp);
-            nint rmat = cv_get_matrix(rtemp);
+            IntPtr lmat = cv_get_matrix(ltemp);
+            IntPtr rmat = cv_get_matrix(rtemp);
 
             if (lmat == IntPtr.Zero || rmat == IntPtr.Zero)
             {
@@ -39,7 +39,20 @@ namespace ImageHelperSharp
                 throw new Exception("Failed to get matrix");
             }
 
-            return OpenCVInterop.cv_get_differential_by_mse(lmat, rmat);
+            double differentialValue = -1;
+            try
+            {
+                differentialValue = OpenCVInterop.cv_get_differential_by_mse(lmat, rmat);
+            }
+            catch
+            {
+            }
+            finally
+            {
+                cv_free_matrix_if_existing(ref lmat);
+                cv_free_matrix_if_existing(ref rmat);
+            }
+            return differentialValue;
         }
     }
 }

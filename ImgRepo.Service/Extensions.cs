@@ -20,5 +20,9 @@ namespace ImgRepo.Service
         {
             return str.IsNullOrEmpty() ? Array.Empty<string>() : str.Split(separator);
         }
+        public static string[] SplitNoThrow(this string str, string separator)
+        {
+            return str.IsNullOrEmpty() ? Array.Empty<string>() : str.Split(separator);
+        }
     }
 }

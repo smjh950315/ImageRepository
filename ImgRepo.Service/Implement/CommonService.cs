@@ -9,11 +9,22 @@ using ImgRepo.Model.Entities.Artist;
 using ImgRepo.Model.Entities.Attributes;
 using ImgRepo.Model.Query;
 using System.Diagnostics;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace ImgRepo.Service.Implement
 {
     internal class CommonService
     {
+        static Dictionary<string, MethodInfo> m_methodCache;
+        static CommonService()
+        {
+            m_methodCache = new();
+            foreach (MethodInfo method in typeof(CommonService).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                m_methodCache[method.Name] = method;
+            }
+        }
         class GroupCountComparerMetaData<TKey>
         {
             public TKey Key { get; set; }
@@ -237,7 +248,7 @@ namespace ImgRepo.Service.Implement
             });
             var originalGroups = result.GroupBy(x => x.ObjectId);
             string name = str;
-            string[] names = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            string[] names = str.Split(GlobalSettings.KeywordSplitter, StringSplitOptions.RemoveEmptyEntries);
             bool isCollection = names.Length > 1;
 
             if (isCollection)
@@ -278,6 +289,32 @@ namespace ImgRepo.Service.Implement
                             .Where(x => names.Contains(x.AttrName))
                             .Select(x => x.ObjectId);
                     }
+                    case CompareType.ContainsAnyOf:
+                    {
+                        var iterator = names.GetEnumerator();
+                        iterator.MoveNext();
+                        var first = (string)iterator.Current;
+                        IQueryable<long> ids = result.Where(x => x.AttrName.Contains(first)).Select(x => x.ObjectId);
+                        while (iterator.MoveNext())
+                        {
+                            string _name = (string)iterator.Current;
+                            ids.Concat(result.Where(x => x.AttrName.Contains(_name)).Select(x => x.ObjectId));
+                        }
+                        return ids;
+                    }
+                    case CompareType.IncludeAnyOf:
+                    {
+                        var iterator = names.GetEnumerator();
+                        iterator.MoveNext();
+                        var first = (string)iterator.Current;
+                        IQueryable<long> ids = result.Where(x => first.Contains(x.AttrName)).Select(x => x.ObjectId);
+                        while (iterator.MoveNext())
+                        {
+                            string _name = (string)iterator.Current;
+                            ids.Concat(result.Where(x => _name.Contains(x.AttrName)).Select(x => x.ObjectId));
+                        }
+                        return ids;
+                    }
                 }
             }
             else
@@ -311,6 +348,18 @@ namespace ImgRepo.Service.Implement
                             .Where(x => x.AttrName == name)
                             .Select(x => x.ObjectId);
                     }
+                    case CompareType.ContainsAnyOf:
+                    {
+                        return result
+                            .Where(x => x.AttrName.Contains(name))
+                            .Select(x => x.ObjectId);
+                    }
+                    case CompareType.IncludeAnyOf:
+                    {
+                        return result
+                            .Where(x => name.Contains(x.AttrName))
+                            .Select(x => x.ObjectId);
+                    }
                 }
             }
             return result.Select(x => x.ObjectId);
@@ -328,6 +377,7 @@ namespace ImgRepo.Service.Implement
             {
                 IQueryable<long>? result = null;
                 ApiCondition[] conds = queryModel.Conditions;
+                var method_IdsByAttributeBase = m_methodCache["getObjectIdsByAttributeExprData"];
                 foreach (ApiCondition cond in conds)
                 {
                     if ((CompareType)cond.CompareType == CompareType.None) continue;
@@ -335,15 +385,15 @@ namespace ImgRepo.Service.Implement
                     {
                         if (exprData.ConstantValue is not string str) continue;
                         IQueryable<long>? meta = null;
-                        if (exprData.MemberName == "Name")
+                        if (cond.Type == "Name")
                         {
                             switch (exprData.CompareType)
                             {
                                 case CompareType.Contains:
                                 {
-                                    if (str.Contains(','))
+                                    if (str.Contains(GlobalSettings.KeywordSplitter))
                                     {
-                                        string[] strs = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                        string[] strs = str.Split(GlobalSettings.KeywordSplitter, StringSplitOptions.RemoveEmptyEntries);
                                         IPredicateHolder<TObj>? predicate = null;
                                         foreach (string s in strs)
                                         {
@@ -370,7 +420,7 @@ namespace ImgRepo.Service.Implement
                                 case CompareType.IsAnyOf:
                                     if (str.Contains(','))
                                     {
-                                        exprData.ConstantValue = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                        exprData.ConstantValue = str.Split(GlobalSettings.KeywordSplitter, StringSplitOptions.RemoveEmptyEntries);
                                     }
                                     else
                                     {
@@ -385,22 +435,29 @@ namespace ImgRepo.Service.Implement
                                 .Where(Predicate.GetExpression<TObj>("Name", exprData.CompareType, exprData.ConstantValue))
                                 .Select(x => x.Id);
                         }
-                        else if (exprData.MemberName == "Tag")
+                        else
                         {
-                            meta = this.getObjectIdsByAttributeExprData<TRecord, TagInformation>(AttributeType.Tag, exprData, str);
+                            var attrMetaData = AttributeType.GetAttributeMetaData(cond.Type);
+                            if (attrMetaData == null) continue;
+                            var genericMethod = method_IdsByAttributeBase.MakeGenericMethod(typeof(TRecord), attrMetaData.ModelType);
+                            meta = (IQueryable<long>?)genericMethod.Invoke(this, [attrMetaData.TypeId, exprData, str]);
                         }
-                        else if (exprData.MemberName == "Category")
-                        {
-                            meta = this.getObjectIdsByAttributeExprData<TRecord, CategoryInformation>(AttributeType.Category, exprData, str);
-                        }
-                        else if (exprData.MemberName == "Website")
-                        {
-                            meta = this.getObjectIdsByAttributeExprData<TRecord, WebsiteInformation>(AttributeType.Website, exprData, str);
-                        }
-                        else if (exprData.MemberName == "Artist")
-                        {
-                            meta = this.getObjectIdsByAttributeExprData<TRecord, ArtistInformation>(0, exprData, str);
-                        }
+                        //else if (cond.Type == "Tag")
+                        //{
+                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, TagInformation>(AttributeType.Tag, exprData, str);
+                        //}
+                        //else if (cond.Type == "Category")
+                        //{
+                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, CategoryInformation>(AttributeType.Category, exprData, str);
+                        //}
+                        //else if (cond.Type == "Website")
+                        //{
+                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, WebsiteInformation>(AttributeType.Website, exprData, str);
+                        //}
+                        //else if (cond.Type == "Artist")
+                        //{
+                        //    meta = this.getObjectIdsByAttributeExprData<TRecord, ArtistInformation>(0, exprData, str);
+                        //}
                         if (meta != null)
                         {
                             result = result != null

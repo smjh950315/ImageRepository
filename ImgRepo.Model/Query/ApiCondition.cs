@@ -4,8 +4,8 @@ namespace ImgRepo.Model.Query
 {
     public class ApiCondition
     {
-        [JsonPropertyName("name")]
-        public string MemberName { get; set; } = string.Empty;
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty;
 
         [JsonPropertyName("operand")]
         public int LinkType { get; set; }
