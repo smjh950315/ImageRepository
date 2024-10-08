@@ -1,44 +1,54 @@
 ﻿using Cyh.Net.Data;
+using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
-using ImgRepo.Model.Entities.Attributes;
+using Microsoft.EntityFrameworkCore;
 
 namespace ImgRepo.Service.Implement
 {
     internal class CommonAttributeService : ICommonAttributeService
     {
-        IDataSource m_dataSource;
-        IQueryable<TagInformation> m_tags;
-        IDataWriter<TagInformation> m_tagWriter;
-        IQueryable<CategoryInformation> m_categories;
-        IDataWriter<CategoryInformation> m_categoryWriter;
+        readonly IDataSource m_dataSource;
 
         public CommonAttributeService(IDataSource dataSource)
         {
             this.m_dataSource = dataSource;
-            this.m_tags = dataSource.GetQueryable<TagInformation>();
-            this.m_tagWriter = dataSource.GetWriter<TagInformation>();
-            this.m_categories = dataSource.GetQueryable<CategoryInformation>();
-            this.m_categoryWriter = dataSource.GetWriter<CategoryInformation>();
         }
 
-        public BasicDetails? GetTagDetail(long id)
+        public virtual IQueryable<BasicDetails> GetDetailsQueryable<TAttribute>() where TAttribute : class, IBasicEntityAttribute, new()
         {
-            return this.m_tags.Select(x => new BasicDetails
-            {
-                Id = x.Id,
-                Name = x.Value,
-                Description = x.Description
-            }).FirstOrDefault(t => t.Id == id);
+            return this.m_dataSource
+                .GetQueryable<TAttribute>()
+                .Select(x => new BasicDetails
+                {
+                    Id = x.Id,
+                    Name = x.Value,
+                    Description = x.Description
+                });
         }
 
-        public BasicDetails? GetCategoryDetail(long id)
+        public BasicDetails? GetDetailById<TAttribute>(long id) where TAttribute : class, IBasicEntityAttribute, new()
         {
-            return this.m_categories.Select(x => new BasicDetails
+            var queryable = this.m_dataSource.GetQueryable<TAttribute>();
+            if (queryable is DbSet<TAttribute> set)
             {
-                Id = x.Id,
-                Name = x.Value,
-                Description = x.Description
-            }).FirstOrDefault(t => t.Id == id);
+                var entity = set.Find(id);
+                if (entity is null) return null;
+                return new BasicDetails
+                {
+                    Id = entity.Id,
+                    Name = entity.Value,
+                    Description = entity.Description
+                };
+            }
+            else
+            {
+                return queryable.Select(x => new BasicDetails
+                {
+                    Id = x.Id,
+                    Name = x.Value,
+                    Description = x.Description
+                }).FirstOrDefault();
+            }
         }
     }
 }

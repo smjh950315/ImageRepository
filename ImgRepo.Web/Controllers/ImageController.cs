@@ -8,7 +8,7 @@ namespace ImgRepo.Web.Controllers
 {
     public class ImageController : Controller
     {
-        IImageService _imageService;
+        readonly IImageService _imageService;
         public ImageController(IImageService imageService)
         {
             this._imageService = imageService;

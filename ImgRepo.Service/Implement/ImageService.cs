@@ -7,6 +7,7 @@ using ImgRepo.Model.Entities.Artist;
 using ImgRepo.Model.Entities.Image;
 using ImgRepo.Model.Image;
 using ImgRepo.Model.Query;
+using ImgRepo.Service.CommonService;
 using ImgRepo.Service.Dto;
 
 namespace ImgRepo.Service.Implement
@@ -25,17 +26,13 @@ namespace ImgRepo.Service.Implement
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
         }
 
-        IQueryable<ImageInformation> m_images;
-        IDataWriter<ImageInformation> m_imageWriter;
-        IQueryable<ArtistInformation> m_artists;
-        IDataWriter<ArtistInformation> m_artistWriter;
+        readonly IQueryable<ImageInformation> m_images;
+        readonly IDataWriter<ImageInformation> m_imageWriter;
+        readonly IQueryable<ArtistInformation> m_artists;
 
-        IQueryable<ImageRecord> m_imageRecords;
-        IDataWriter<ImageRecord> m_imageRecordWriter;
-
-        IQueryable<ImageFileData> m_imagefiles;
-        IDataWriter<ImageFileData> m_imageFileWriter;
-        IFileAccessService m_fileAccessService;
+        readonly IQueryable<ImageFileData> m_imagefiles;
+        readonly IDataWriter<ImageFileData> m_imageFileWriter;
+        readonly IFileAccessService m_fileAccessService;
 
         IQueryable<MetaImageFileBinding> ImageFiles => this.m_images.Join(this.m_imagefiles, i => i.FileId, f => f.Id, (i, f) => new MetaImageFileBinding
         {
@@ -61,10 +58,6 @@ namespace ImgRepo.Service.Implement
             this.m_images = dataSource.GetQueryable<ImageInformation>();
             this.m_imageWriter = dataSource.GetWriter<ImageInformation>();
             this.m_artists = dataSource.GetQueryable<ArtistInformation>();
-            this.m_artistWriter = dataSource.GetWriter<ArtistInformation>();
-
-            this.m_imageRecords = dataSource.GetQueryable<ImageRecord>();
-            this.m_imageRecordWriter = dataSource.GetWriter<ImageRecord>();
 
             this.m_imagefiles = dataSource.GetQueryable<ImageFileData>();
             this.m_imageFileWriter = dataSource.GetWriter<ImageFileData>();
@@ -80,90 +73,62 @@ namespace ImgRepo.Service.Implement
 
         public long CreateImage(NewImageDto? imageDto)
         {
-            if (imageDto == null)
-            {
-                return 0;
-            }
+            if (imageDto == null) return 0;
 
-            this.m_dataSource.BeginTransaction();
-            Guid guid = Guid.NewGuid();
-            ImageFileData imageFileData = new ImageFileData
+            using (this.m_dataSource.BeginTransaction())
             {
-                FileName = imageDto.FileName,
-                Width = imageDto.ImInfo.Size.Width,
-                Height = imageDto.ImInfo.Size.Height,
-                Channel = imageDto.ImInfo.Channels,
-                FileSize = imageDto.Data.Length,
-                Format = imageDto.ImInfo.Format,
-                Uri = guid.ToString(),
-            };
-            this.m_imageFileWriter.Add(imageFileData);
-            try
-            {
-                this.m_dataSource.Save();
-            }
-            catch
-            {
-                this.m_dataSource.RollbackTransaction();
-                return -1;
-            }
-
-            ImageInformation image = new ImageInformation
-            {
-                Name = imageDto.ImageName,
-                Description = imageDto.Description,
-                FileId = imageFileData.Id,
-                Created = DateTime.Now,
-                Updated = DateTime.Now,
-            };
-            this.m_imageWriter.Add(image);
-            try
-            {
-                this.m_dataSource.Save();
-            }
-            catch
-            {
-                this.m_dataSource.RollbackTransaction();
-                return -1;
-            }
-            if (image.Id == 0)
-            {
-                this.m_dataSource.RollbackTransaction();
-                return 0;
-            }
-
-            if (!this.m_fileAccessService.SaveObject("image", image.Id, imageFileData.Uri, imageFileData.Format, imageDto.Data)
-                || !this.m_fileAccessService.SaveObject("image", image.Id, imageFileData.Uri + "_thumb", imageFileData.Format, imageDto.ThumbData))
-            {
-                this.m_dataSource.RollbackTransaction();
-                return -1;
-            }
-
-            this.m_dataSource.CommitTransaction();
-
-            if (imageDto.Tags != null)
-            {
-                foreach (string tag in imageDto.Tags)
+                Guid guid = Guid.NewGuid();
+                ImageFileData imageFileData = new ImageFileData
                 {
-                    this.AddTag(image.Id, tag);
-                }
-            }
-            if (imageDto.Categories != null)
-            {
-                foreach (string category in imageDto.Categories)
-                {
-                    this.AddCategory(image.Id, category);
-                }
-            }
+                    FileName = imageDto.FileName,
+                    Width = imageDto.ImInfo.Size.Width,
+                    Height = imageDto.ImInfo.Size.Height,
+                    Channel = imageDto.ImInfo.Channels,
+                    FileSize = imageDto.Data.Length,
+                    Format = imageDto.ImInfo.Format,
+                    Uri = guid.ToString(),
+                };
+                this.m_imageFileWriter.Add(imageFileData);
+                if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
 
-            return image.Id;
+                var image = new ImageInformation
+                {
+                    Name = imageDto.Name,
+                    Description = imageDto.Description,
+                    Created = DateTime.Now,
+                    FileId = imageFileData.Id,
+                };
+                this.m_imageWriter.Add(image);
+                if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
+
+                bool fileSuccess = this.m_fileAccessService.SaveObject("image", image.Id, imageFileData.Uri, imageFileData.Format, imageDto.Data);
+                if (!fileSuccess) return -1;
+                bool thumbSuccess = this.m_fileAccessService.SaveObject("image", image.Id, imageFileData.Uri + "_thumb", imageFileData.Format, imageDto.ThumbData);
+                if (!thumbSuccess) return -1;
+
+                if (imageDto.Tags != null)
+                {
+                    foreach (string tag in imageDto.Tags)
+                    {
+                        this.AddTag(image.Id, tag);
+                    }
+                }
+                if (imageDto.Categories != null)
+                {
+                    foreach (string category in imageDto.Categories)
+                    {
+                        this.AddCategory(image.Id, category);
+                    }
+                }
+
+                this.m_dataSource.CommitTransaction();
+                return image.Id;
+            }
         }
 
-        public long RenameImage(long imageId, string newName) => this.Rename(imageId, newName);
-
-        public override long RemoveObject(long imageId)
+        public override long Remove(long imageId)
         {
-            long removedId = this.Remove(imageId);
+            long removedId = base.Remove(imageId);
             if (removedId <= 0) return removedId;
             ImageFileData? imageFile = this.m_imagefiles.FirstOrDefault(f => f.Id == removedId);
             if (imageFile == null) return removedId;

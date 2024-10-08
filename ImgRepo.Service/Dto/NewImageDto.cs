@@ -5,15 +5,49 @@ using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
 namespace ImgRepo.Service.Dto
 {
-    public class NewImageDto
+    /// <summary>
+    /// 建立圖片的資料檔
+    /// </summary>
+    public class NewImageDto : IBasicObjectDto
     {
-        public string ImageName { get; set; }
+        /// <summary>
+        /// 圖片名稱，未取名則使用檔名做為其名稱
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// 說明或描述
+        /// </summary>
         public string? Description { get; set; }
+
+        /// <summary>
+        /// 檔案名稱
+        /// </summary>
         public string FileName { get; set; }
+
+        /// <summary>
+        /// 檔案資料
+        /// </summary>
         public byte[] Data { get; set; }
+
+        /// <summary>
+        /// 縮圖資料
+        /// </summary>
         public byte[] ThumbData { get; set; }
+
+        /// <summary>
+        /// 標籤
+        /// </summary>
         public string[] Tags { get; set; }
+
+        /// <summary>
+        /// 分類
+        /// </summary>
         public string[] Categories { get; set; }
+
+        /// <summary>
+        /// 圖像資訊
+        /// </summary>
         public ImInfo ImInfo { get; set; }
 
         NewImageDto(IBasicUploadModel uploadModel, string filename, byte[] binaryData, string[] tags, string[] categories)
@@ -21,7 +55,7 @@ namespace ImgRepo.Service.Dto
             this.FileName = filename;
             this.Data = binaryData;
             this.ThumbData = StbService.Resize(this.Data, 256, 256);
-            this.ImageName = uploadModel.Name.IsNullOrEmpty() ? filename : uploadModel.Name;
+            this.Name = uploadModel.Name.IsNullOrEmpty() ? filename : uploadModel.Name;
             this.ImInfo = StbService.GetImageFileInfo(this.Data);
             this.Description = uploadModel.Description;
             this.Tags = tags;

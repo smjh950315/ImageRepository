@@ -6,7 +6,7 @@ namespace ImgRepo.Web
 {
     public class Startup
     {
-        IConfiguration m_configuration;
+        readonly IConfiguration m_configuration;
         public Startup(IConfiguration configuration)
         {
             this.m_configuration = configuration;

@@ -3,12 +3,12 @@
 namespace ImgRepo.Service.Dto
 {
     /// <summary>
-    /// 建立藝術家資料檔的相關資料
+    /// 建立相簿的相關資料
     /// </summary>
-    public class NewArtistDto : IBasicObjectDto
+    public class NewAlbumDto : IBasicObjectDto
     {
         /// <summary>
-        /// 藝術家名稱
+        /// 相簿名稱
         /// </summary>
         public string Name { get; set; }
 
@@ -27,29 +27,17 @@ namespace ImgRepo.Service.Dto
         /// </summary>
         public string[] Categories { get; set; }
 
-        /// <summary>
-        /// 綽號或是代稱
-        /// </summary>
-        public string[] NickNames { get; set; }
-
-        /// <summary>
-        /// 網站
-        /// </summary>
-        public string[] Websites { get; set; }
-
-        NewArtistDto(IBasicUploadModel uploadModel, string[] nickNames, string[] websites)
+        NewAlbumDto(IBasicUploadModel uploadModel)
         {
             this.Name = uploadModel.Name;
             this.Description = uploadModel.Description;
             this.Tags = uploadModel.Tags.SplitNoThrow(GlobalSettings.KeywordSplitter);
             this.Categories = uploadModel.Categories.SplitNoThrow(GlobalSettings.KeywordSplitter);
-            this.NickNames = nickNames;
-            this.Websites = websites;
         }
 
-        public static NewArtistDto FromUploadModel(IBasicUploadModel uploadModel, string[] nickNames, string[] websites)
+        public static NewAlbumDto FromUploadModel(IBasicUploadModel uploadModel)
         {
-            return new NewArtistDto(uploadModel, nickNames, websites);
+            return new NewAlbumDto(uploadModel);
         }
     }
 }

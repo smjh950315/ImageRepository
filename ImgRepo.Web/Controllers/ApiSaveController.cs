@@ -20,7 +20,7 @@ namespace ImgRepo.Web.Controllers
         [Route("image/name")]
         public IActionResult RenameImage(ApiAttributeEdit apiAttributeEdit)
         {
-            long newId = this._imageService.RenameImage(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
+            long newId = this._imageService.Rename(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
             return newId > 0 ? this.Ok() : this.BadRequest();
         }
 

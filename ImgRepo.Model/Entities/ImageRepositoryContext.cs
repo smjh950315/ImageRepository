@@ -31,7 +31,7 @@ namespace ImgRepo.Model
         public DbSet<WebsiteInformation> WebsiteInformations { get; set; }
 
 
-        public DbSet<AlbumImageBinding> AlbumImageBindings { get; set; }
+        public DbSet<AlbumImageBindingRecord> AlbumImageBindings { get; set; }
     }
 
     public partial class ImageRepositoryContext
@@ -39,7 +39,7 @@ namespace ImgRepo.Model
         readonly Dictionary<Type, object> m_queryables = new Dictionary<Type, object>();
         readonly Dictionary<Type, object> m_writers = new Dictionary<Type, object>();
 
-        public object? BeginTransaction()
+        public IDisposable? BeginTransaction()
         {
             return this.Database.BeginTransaction();
         }

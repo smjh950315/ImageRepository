@@ -3,22 +3,12 @@
     /// <summary>
     /// image, author, album 物件的基本資訊介面
     /// </summary>
-    public interface IBasicEntityInformation
+    public interface IBasicEntityInformation : IBasicObjectDto
     {
         /// <summary>
         /// 流水號主鍵
         /// </summary>
         long Id { get; set; }
-
-        /// <summary>
-        /// 物件名稱
-        /// </summary>
-        string Name { get; set; }
-
-        /// <summary>
-        /// 物件描述
-        /// </summary>
-        string? Description { get; set; }
 
         /// <summary>
         /// 物件建立時間

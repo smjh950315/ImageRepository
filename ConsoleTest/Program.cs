@@ -13,9 +13,9 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
 
-            var img1 = File.ReadAllBytes(@"D:\test0.png");
+            var img1 = File.ReadAllBytes(@"D:\Test\1\1.jpg");
 
-            var img2 = File.ReadAllBytes(@"D:\test1.png");
+            var img2 = File.ReadAllBytes(@"D:\Test\1\2.png");
 
 
             var diff = OpenCVService.GetImageDifferential(img1, img2);

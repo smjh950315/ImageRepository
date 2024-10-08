@@ -13,11 +13,11 @@ class ImgRepoImageIndexHelper {
     static AddNewItem(_btn, _baseUrl, _objectName, _attrName) {
         let imgId = Number($("#image-id").text());
         ImgRepoCommon.SaveEdit(_btn, (value) => {
-            let data = {id: imgId, value: value};
-            ImgRepoCommon.HttpPost(_baseUrl + `api/save/${_objectName}/${_attrName}/add/`, data, (data) => {
-                let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${data.name}</span>`, (item) => {
-                    ImgRepoCommon.HttpPost(_baseUrl + `api/save/${_objectName}/${_attrName}/remove/`, data, (e) => {
-                        $(item).remove();
+            let postData = {id: imgId, value: value};
+            ImgRepoCommon.HttpPost(_baseUrl + `api/save/${_objectName}/${_attrName}/add/`, postData, (itemInfo) => {
+                let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${itemInfo.name}</span>`, (target) => {
+                    ImgRepoCommon.HttpPost(_baseUrl + `api/save/${_objectName}/${_attrName}/remove/`, postData, (e) => {
+                        $(target).remove();
                     });
                 });
                 $(_btn).closest(".img-repo-attr-group").find(".img-repo-item-container").append(newItem);
@@ -26,15 +26,14 @@ class ImgRepoImageIndexHelper {
     }
     static LoadItems(_baseUrl, _objectName, _attrName, _attrNameSingle, _container) {
         let imgId = Number($("#image-id").text());
-        ImgRepoCommon.HttpGet(_baseUrl + `api/query/${_objectName}/${_attrName}/` + imgId, (datas) => {
+        ImgRepoCommon.HttpGet(_baseUrl + `api/query/${_objectName}/${_attrName}/` + imgId, (itemInfos) => {
             let container = $(_container);
-            console.log(datas);
-            datas.forEach(data => {
-                let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${data.name}</span>`, (item) => {
+            itemInfos.forEach(itemInfo => {
+                let newItem = ImgRepoCommon.GetImgRepoItem(`<span>${itemInfo.name}</span>`, (target) => {
                     ImgRepoCommon.HttpPost(_baseUrl + `api/save/${_objectName}/${_attrNameSingle}/remove/`,
-                        { id: imgId, value: data.name },
+                        { id: imgId, value: itemInfo.name },
                         (e) => {
-                        $(item).remove();
+                            $(target).remove();
                     });
                 });
                 container.append(newItem);

@@ -2,7 +2,7 @@
 {
     internal class FileAccessService : IFileAccessService
     {
-        string m_basePath;
+        readonly string m_basePath;
 
         public FileAccessService(string basePath)
         {

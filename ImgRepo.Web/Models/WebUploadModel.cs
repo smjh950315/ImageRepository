@@ -8,7 +8,7 @@ namespace ImgRepo.Web.Models
     public class WebUploadModel : IBasicUploadModel
     {
         public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public string Tags { get; set; } = string.Empty;
         public string Categories { get; set; } = string.Empty;
         public IEnumerable<IFormFile> Files { get; set; } = null!;

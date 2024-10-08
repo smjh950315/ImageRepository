@@ -1,0 +1,69 @@
+﻿using Cyh.Net.Data;
+using ImgRepo.Data.Interface;
+using System.Reflection;
+
+namespace ImgRepo.Service.CommonService
+{
+    internal abstract class CommonObjectBindingServiceBase
+    {
+        static readonly Dictionary<string, MethodInfo> CachedMethods;
+
+        static CommonObjectBindingServiceBase()
+        {
+            CachedMethods = new();
+            string implPrefix = "Impl_";
+            var methodImpls = typeof(CommonObjectBindingServiceBase).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            foreach (MethodInfo method in methodImpls)
+            {
+                if (!method.Name.Contains(implPrefix)) continue;
+                CachedMethods[method.Name] = method;
+            }
+        }
+
+        long Impl_SetObjectBinding<TMainObject, TSubObject, TObjectBinding>(long _mainObjId, long _subObjId, bool _delete)
+            where TMainObject : class, IBasicEntityInformation, new()
+            where TSubObject : class, IBasicEntityInformation, new()
+            where TObjectBinding : class, IObjectBindingRecord, new()
+        {
+            var bindings = this.m_dataSource.GetQueryable<TObjectBinding>();
+            var binding = bindings.FirstOrDefault(x => x.MainObjectId == _mainObjId && x.SubObjectId == _subObjId);
+            if (binding == null)
+            {
+                if (_delete) return 0;
+                binding = new TObjectBinding
+                {
+                    MainObjectId = _mainObjId,
+                    SubObjectId = _subObjId,
+                };
+                this.m_dataSource.GetWriter<TObjectBinding>().Add(binding);
+            }
+            else
+            {
+                if (!_delete) return 0;
+                this.m_dataSource.GetWriter<TObjectBinding>().Remove(binding);
+            }
+            this.m_dataSource.Save();
+            return binding.Id;
+        }
+
+        protected IDataSource m_dataSource;
+
+        public abstract Type MainObjectType { get; }
+        public abstract Type SubObjectType { get; }
+        public abstract Type BindingType { get; }
+
+        protected CommonObjectBindingServiceBase(IDataSource dataSource)
+        {
+            this.m_dataSource = dataSource;
+        }
+
+        public virtual long SetBinding(long _mainObjId, long _subObjId, bool _delete)
+        {
+            if (_mainObjId <= 0 || _subObjId <= 0) return 0;
+            return (long)CachedMethods.FindAndExecuteByName(
+                this, "Impl_SetObjectBinding",
+                [this.MainObjectType, this.SubObjectType, this.BindingType],
+                _mainObjId, _subObjId, _delete)!;
+        }
+    }
+}

@@ -23,14 +23,6 @@ namespace ImgRepo.Service
         long CreateImage(NewImageDto? imageDto);
 
         /// <summary>
-        /// 重新命名圖片
-        /// </summary>
-        /// <param name="imageId">圖片ID</param>
-        /// <param name="newName">新名稱</param>
-        /// <returns>圖片ID</returns>
-        long RenameImage(long imageId, string newName);
-
-        /// <summary>
         /// 用藝術家資料檔ID設定作者
         /// <para>已經有作者則會覆蓋</para>
         /// <para>authorDataId為0則會新增作者資料檔</para>
