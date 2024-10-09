@@ -6,6 +6,7 @@ using ImgRepo.Data.Interface;
 using ImgRepo.Model;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Query;
+using ImgRepo.Service.Implement;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -66,93 +67,148 @@ namespace ImgRepo.Service.CommonService
             }
         }
 
-        long Impl_SetObjectAttributeData<TObject, TRecord, TAttribute>(long objectId, string attrValue, bool _delete)
-            where TObject : class, IBasicEntityInformation, new()
+        TRecord? NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(long objectId, string attrValue)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
+            var records = this.m_dataSource.GetQueryable<TRecord>();
+            var attrs = this.m_dataSource.GetQueryable<TAttribute>();
+            return records
+                .Where(r => r.AttrType == attrTypeId)
+                .Join(attrs, r => r.AttrId, a => a.Id, (r, a) => new
+                {
+                    r = r,
+                    a = a
+                }).FirstOrDefault(x => x.a.Value == attrValue)?.r;
+        }
+
+        long Impl_AddObjectAttribute<TRecord, TAttribute>(long objectId, string attrValue)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
+
+            var record = this.NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(objectId, attrValue);
+
+            if (record == null)
+            {
+                var attrId = new CommonAttributeService(this.m_dataSource).GetIdByName<TAttribute>(attrValue);
+                this.m_dataSource.GetWriter<TRecord>().Add(new TRecord
+                {
+                    ObjectId = objectId,
+                    AttrId = attrId,
+                    AttrType = attrTypeId,
+                });
+                this.m_dataSource.Save();
+                return attrId;
+            }
+            return 0;
+        }
+
+        long Impl_RemoveObjectAttribute<TRecord, TAttribute>(long objectId, string attrValue)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            var record = this.NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(objectId, attrValue);
+
+            if (record != null)
+            {
+                var attrId = new CommonAttributeService(this.m_dataSource).GetIdByName<TAttribute>(attrValue);
+                this.m_dataSource.GetWriter<TRecord>().Remove(record);
+                this.m_dataSource.Save();
+                return attrId;
+            }
+
+            return 0;
+        }
+
+        long Impl_LinkObjectAttributesUnchecked<TRecord, TAttribute>(long objectId, IEnumerable<long> attrIds)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
+            {
+                var writer = this.m_dataSource.GetWriter<TRecord>();
+                List<TRecord> newRecords = new List<TRecord>();
+                foreach (var attrId in attrIds)
+                {
+                    newRecords.Add(new TRecord
+                    {
+                        ObjectId = objectId,
+                        AttrId = attrId,
+                        AttrType = attrTypeId
+                    });
+                }
+                writer.AddRange(newRecords);
+            }
+
+            return Lib.TryExecute(() => this.m_dataSource.Save()) ? 0 : -1;
+        }
+
+        long Impl_BatchLinkObjectAttributesUnchecked<TRecord, TAttribute>(IEnumerable<long> objectIds, IEnumerable<long> attrIds)
+            where TRecord : class, IBasicEntityRecord, new()
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
+            {
+                var writer = this.m_dataSource.GetWriter<TRecord>();
+                List<TRecord> newRecords = new List<TRecord>();
+                foreach (var objectId in objectIds)
+                {
+                    foreach (var attrId in attrIds)
+                    {
+                        newRecords.Add(new TRecord
+                        {
+                            ObjectId = objectId,
+                            AttrId = attrId,
+                            AttrType = attrTypeId
+                        });
+                    }
+                }
+                writer.AddRange(newRecords);
+            }
+
+            return Lib.TryExecute(() => this.m_dataSource.Save()) ? 0 : -1;
+        }
+
+        long Impl_BatchAddObjectAttributeData<TRecord, TAttribute>(long objectId, IEnumerable<string> attrValues)
             where TRecord : class, IBasicEntityRecord, new()
             where TAttribute : class, IBasicEntityAttribute, new()
         {
             // no object
-            if (objectId == 0) return 0;
-            IQueryable<TObject> objs = this.m_dataSource.GetQueryable<TObject>();
-            IQueryable<TAttribute> attrs = this.m_dataSource.GetQueryable<TAttribute>();
-            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
-            IDataWriter<TAttribute> attrWriter = this.m_dataSource.GetWriter<TAttribute>();
-            IDataWriter<TRecord> recordWriter = this.m_dataSource.GetWriter<TRecord>();
+            if (objectId == 0 || attrValues.IsNullOrEmpty()) return 0;
 
-            TAttribute? attr = attrs.FirstOrDefault(a => a.Value == attrValue);
+            long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
 
-            long attributeTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
-            if (attributeTypeId == 0) return 0;
-
-            if (_delete)
+            IEnumerable<long> shouldAddIds;
             {
-                if (attr == null)
-                {
-                    // no attr, nothing to do
-                    return 0;
-                }
-                else
-                {
-                    // has attr, remove record
-                    TRecord? record = records.FirstOrDefault(r => r.ObjectId == objectId && r.AttrId == attr.Id && r.AttrType == attributeTypeId);
-                    if (record != null)
-                    {
-                        recordWriter.Remove(record);
-                        if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                        {
-                            return -1;
-                        }
-                    }
-                    return attr.Id;
-                }
+                IEnumerable<long> attrIds = new CommonAttributeService(this.m_dataSource).GetIdsByNames<TAttribute>(attrValues);
+                IEnumerable<long> existingRecordIds = this.m_dataSource.GetQueryable<TRecord>()
+                    .Where(x => x.ObjectId == objectId && x.AttrType == attrTypeId)
+                    .Where(x => attrIds.Contains(x.AttrId)).Select(x => x.AttrId).ToList();
+                shouldAddIds = attrIds.Except(existingRecordIds);
             }
-            else
+
             {
-                if (attr == null)
+                var writer = this.m_dataSource.GetWriter<TRecord>();
+                List<TRecord> newRecords = new List<TRecord>();
+                foreach (var attrId in shouldAddIds)
                 {
-                    // no attr, create attr and record
-                    attr = new TAttribute
-                    {
-                        Value = attrValue,
-                        Created = DateTime.Now,
-                    };
-                    attrWriter.Add(attr);
-                    if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                    {
-                        return -1;
-                    }
-                    TRecord record = new TRecord
+                    newRecords.Add(new TRecord
                     {
                         ObjectId = objectId,
-                        AttrId = attr.Id,
-                        AttrType = attributeTypeId,
-                    };
-                    recordWriter.Add(record);
-                    if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                    {
-                        return -1;
-                    }
+                        AttrId = attrId,
+                        AttrType = attrTypeId
+                    });
                 }
-                else
-                {
-                    // has attr, create record
-                    TRecord record = new TRecord
-                    {
-                        ObjectId = objectId,
-                        AttrId = attr.Id,
-                        AttrType = attributeTypeId,
-                    };
-                    recordWriter.Add(record);
-                    if (!Lib.TryExecute(() => this.m_dataSource.Save()))
-                    {
-                        return -1;
-                    }
-                }
-                return attr.Id;
+                writer.AddRange(newRecords);
             }
+
+            return Lib.TryExecute(() => this.m_dataSource.Save()) ? 0 : -1;
         }
 
-        IEnumerable<BasicInfo> Impl_GetObjectAttributeInformations<TRecord, TAttribute>(long objectId)
+        IQueryable<BasicInfo> Impl_GetObjectAttributeInformationQueryable<TRecord, TAttribute>(long objectId)
             where TRecord : class, IBasicEntityRecord, new()
             where TAttribute : class, IBasicEntityAttribute, new()
         {
@@ -189,40 +245,6 @@ namespace ImgRepo.Service.CommonService
             this.m_dataSource.GetWriter<TObject>().Remove(obj);
             if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
             return obj.Id;
-        }
-
-        IQueryable<long> Impl_GetObjectIdsByAttributeName<TRecord, TAttribute>(IEnumerable<ExpressionData> exprDatas)
-            where TRecord : class, IBasicEntityRecord, new()
-            where TAttribute : class, IBasicEntityAttribute, new()
-        {
-            long attrType = AttributeType.GetAttributeTypeId<TAttribute>();
-            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
-            IQueryable<TAttribute> attrs = this.m_dataSource.GetQueryable<TAttribute>();
-            IQueryable<MetaAttributeNameResult> metaQueryable = records
-                .Join(attrs,
-                    r => r.AttrId,
-                    a => a.Id,
-                    (r, a) => new MetaAttributeNameResult
-                    {
-                        ObjectId = r.ObjectId,
-                        AttrType = r.AttrType,
-                        Value = a.Value
-                    }).Where(r => r.AttrType == attrType);
-
-            if (exprDatas.IsNullOrEmpty())
-                return metaQueryable.Select(r => r.ObjectId);
-
-            foreach (ExpressionData exprData in exprDatas)
-            {
-                exprData.MemberName = "Value";
-            }
-
-            System.Linq.Expressions.Expression<Func<MetaAttributeNameResult, bool>>? predicate = Predicate.GetExpression<MetaAttributeNameResult>(exprDatas);
-
-            if (predicate == null)
-                return metaQueryable.Select(r => r.ObjectId);
-
-            return metaQueryable.Where(predicate).Select(r => r.ObjectId);
         }
 
         IQueryable<long> Impl_GetObjectIdsByAttributeExpressionData<TRecord, TAttribute>(ExpressionData expressionData, string str)
@@ -450,7 +472,10 @@ namespace ImgRepo.Service.CommonService
 
                             if (targetAttrType != null)
                             {
-                                meta = this.GetIdsByAttributeExpressionData(targetAttrType, exprData, str);
+                                meta = (IQueryable<long>?)CachedMethods.FindAndExecuteByName(
+                                        this, "Impl_GetObjectIdsByAttributeExpressionData",
+                                        [this.RecordType, targetAttrType],
+                                        exprData, str);
                             }
                         }
                         if (meta != null)
@@ -486,18 +511,50 @@ namespace ImgRepo.Service.CommonService
             where TAttribute : class, IBasicEntityAttribute, new()
         {
             if (objectId == 0) return 0;
+
+            string methodName = _delete ? "Impl_RemoveObjectAttribute" : "Impl_AddObjectAttribute";
+
             return (long)CachedMethods.FindAndExecuteByName(
-                this, "Impl_SetObjectAttributeData",
-                [this.ObjectType, this.RecordType, typeof(TAttribute)],
-                objectId, attrValue, _delete)!;
+                this, methodName,
+                [this.RecordType, typeof(TAttribute)],
+                objectId, attrValue)!;
         }
 
-        public virtual IEnumerable<BasicInfo> GetAttributes<TAttribute>(long objectId)
+        public virtual void BatchAddAttributes<TAttribute>(long objectId, IEnumerable<string> attrValues)
             where TAttribute : class, IBasicEntityAttribute, new()
         {
-            if (objectId == 0) return Enumerable.Empty<BasicInfo>();
-            return (IEnumerable<BasicInfo>)CachedMethods.FindAndExecuteByName(
-                this, "Impl_GetObjectAttributeInformations",
+            if (objectId == 0) return;
+            CachedMethods.FindAndExecuteByName(
+                this, "Impl_BatchAddObjectAttributeData",
+                [this.RecordType, typeof(TAttribute)],
+                objectId, attrValues);
+        }
+
+        protected virtual void BatchLinkObjectAttributesUnchecked<TAttribute>(IEnumerable<long> objectIds, IEnumerable<long> attrIds)
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            // no object
+            if (objectIds.IsNullOrEmpty() || attrIds.IsNullOrEmpty()) return;
+            CachedMethods.FindAndExecuteByName(
+                this, "Impl_BatchLinkObjectAttributesUnchecked",
+                [this.RecordType, typeof(TAttribute)],
+                objectIds, attrIds);
+        }
+        protected virtual void LinkObjectAttributesUnchecked<TAttribute>(long objectId, IEnumerable<long> attrIds)
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            // no object
+            if (objectId == 0 || attrIds.IsNullOrEmpty()) return;
+            CachedMethods.FindAndExecuteByName(
+                this, "Impl_LinkObjectAttributesUnchecked",
+                [this.RecordType, typeof(TAttribute)],
+                objectId, attrIds);
+        }
+        public virtual IQueryable<BasicInfo> GetAttributeQueryable<TAttribute>(long objectId)
+            where TAttribute : class, IBasicEntityAttribute, new()
+        {
+            return (IQueryable<BasicInfo>)CachedMethods.FindAndExecuteByName(
+                this, "Impl_GetObjectAttributeInformationQueryable",
                 [this.RecordType, typeof(TAttribute)],
                 objectId)!;
         }
@@ -518,30 +575,6 @@ namespace ImgRepo.Service.CommonService
                 this, "Impl_RemoveObject",
                 [this.ObjectType],
                 objectId)!;
-        }
-
-        public virtual IQueryable<long> GetIdsByAttributeName<TAttribute>(IEnumerable<ExpressionData> exprDatas)
-             where TAttribute : class, IBasicEntityAttribute, new()
-        {
-            return (IQueryable<long>)CachedMethods.FindAndExecuteByName(
-                this, "Impl_GetObjectIdsByAttributeName",
-                [this.RecordType, typeof(TAttribute)],
-                exprDatas)!;
-        }
-
-        public virtual IQueryable<long>? GetIdsByAttributeExpressionData(Type attrType, ExpressionData expressionData, string str)
-        {
-            return (IQueryable<long>?)CachedMethods.FindAndExecuteByName(
-                this, "Impl_GetObjectIdsByAttributeExpressionData",
-                [this.RecordType, attrType],
-                expressionData, str);
-        }
-
-        public virtual IEnumerable<long> GetIdsByAttributeName<TAttribute>(IEnumerable<ExpressionData> exprDatas, DataRange? range)
-            where TAttribute : class, IBasicEntityAttribute, new()
-        {
-            IQueryable<long> ids = this.GetIdsByAttributeName<TAttribute>(exprDatas);
-            return range != null ? ids.Skip(range.Begin).Take(range.Count).ToList() : (IEnumerable<long>)ids.ToList();
         }
 
         public virtual BasicDetails? GetBasicDetails(long objectId)

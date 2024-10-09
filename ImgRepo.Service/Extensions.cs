@@ -10,9 +10,9 @@ namespace ImgRepo.Service
 {
     public static class Extensions
     {
-        public static bool SaveObject(this IFileAccessService fileAccessService, string objectType, long objectId, string uri, string extName, byte[] data)
+        public static bool SaveObject(this IFileAccessService fileAccessService, string objectType, string uriName, byte[] data)
         {
-            string uriPath = $"{objectType}/{objectId}/{uri}.{extName}";
+            string uriPath = $"{objectType}/{uriName}";
             return fileAccessService.SaveFile(uriPath, data);
         }
 
@@ -117,7 +117,7 @@ namespace ImgRepo.Service
         /// <param name="objectId">物件ID</param>
         /// <returns>標籤清單</returns>
         public static IEnumerable<BasicInfo> GetTags(this ICommonObjectService commonObjectService, long objectId)
-            => commonObjectService.GetAttributes<TagInformation>(objectId);
+            => commonObjectService.GetAttributeQueryable<TagInformation>(objectId);
 
         /// <summary>
         /// 取得物件分類清單
@@ -125,7 +125,7 @@ namespace ImgRepo.Service
         /// <param name="objectId">物件ID</param>
         /// <returns>分類清單</returns>
         public static IEnumerable<BasicInfo> GetCategories(this ICommonObjectService commonObjectService, long objectId)
-            => commonObjectService.GetAttributes<CategoryInformation>(objectId);
+            => commonObjectService.GetAttributeQueryable<CategoryInformation>(objectId);
 
         /// <summary>
         /// 取得物件網站清單
@@ -133,7 +133,7 @@ namespace ImgRepo.Service
         /// <param name="objectId">物件ID</param>
         /// <returns>網站清單</returns>
         public static IEnumerable<BasicInfo> GetWebsites(this ICommonObjectService commonObjectService, long objectId)
-            => commonObjectService.GetAttributes<WebsiteInformation>(objectId);
+            => commonObjectService.GetAttributeQueryable<WebsiteInformation>(objectId);
 
 
         /// <summary>

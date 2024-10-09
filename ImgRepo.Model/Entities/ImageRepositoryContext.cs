@@ -102,6 +102,11 @@ namespace ImgRepo.Model
             this.m_set.Add(item);
         }
 
+        public void AddRange(IEnumerable<T> items)
+        {
+            this.m_set.AddRange(items);
+        }
+
         public void Remove(T item)
         {
             this.m_set.Remove(item);

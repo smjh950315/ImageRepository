@@ -58,14 +58,15 @@ namespace ImgRepo.Web.Controllers
 
         [HttpPost]
         [Route("image/upload")]
-        public IActionResult Upload(ApiUploadModel uploadModel)
+        public async Task<IActionResult> Upload(ApiUploadModel uploadModel)
         {
             if (uploadModel.File == null)
             {
                 this.ModelState.AddModelError("UploadBytes", "Please upload an image");
                 return this.NoContent();
             }
-            this._imageService.CreateImage(uploadModel);
+            var newImageId = await this._imageService.CreateImageAsync(uploadModel);
+            if (newImageId == 0) return this.NoContent();
             return this.Ok();
         }
     }

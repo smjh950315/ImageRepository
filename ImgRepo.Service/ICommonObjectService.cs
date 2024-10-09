@@ -1,5 +1,4 @@
-﻿using Cyh.Net.Data.Predicate;
-using ImgRepo.Data.Interface;
+﻿using ImgRepo.Data.Interface;
 using ImgRepo.Model.Common;
 using ImgRepo.Model.Query;
 
@@ -9,9 +8,7 @@ namespace ImgRepo.Service
     {
         long SetAttribute<TAttribute>(long objectId, string attrValue, bool _delete) where TAttribute : class, IBasicEntityAttribute, new();
 
-        IEnumerable<BasicInfo> GetAttributes<TAttribute>(long objectId) where TAttribute : class, IBasicEntityAttribute, new();
-
-        IQueryable<long> GetIdsByAttributeName<TAttribute>(IEnumerable<ExpressionData> exprDatas) where TAttribute : class, IBasicEntityAttribute, new();
+        IQueryable<BasicInfo> GetAttributeQueryable<TAttribute>(long objectId) where TAttribute : class, IBasicEntityAttribute, new();
 
         /// <summary>
         /// 修改物件名稱

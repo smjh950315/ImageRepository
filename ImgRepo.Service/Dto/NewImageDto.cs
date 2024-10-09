@@ -31,11 +31,6 @@ namespace ImgRepo.Service.Dto
         public byte[] Data { get; set; }
 
         /// <summary>
-        /// 縮圖資料
-        /// </summary>
-        public byte[] ThumbData { get; set; }
-
-        /// <summary>
         /// 標籤
         /// </summary>
         public string[] Tags { get; set; }
@@ -54,7 +49,6 @@ namespace ImgRepo.Service.Dto
         {
             this.FileName = filename;
             this.Data = binaryData;
-            this.ThumbData = StbService.Resize(this.Data, 256, 256);
             this.Name = uploadModel.Name.IsNullOrEmpty() ? filename : uploadModel.Name;
             this.ImInfo = StbService.GetImageFileInfo(this.Data);
             this.Description = uploadModel.Description;

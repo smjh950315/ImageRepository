@@ -31,7 +31,7 @@ namespace ImgRepo.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Upload(WebUploadModel uploadModel)
+        public async Task<IActionResult> Upload(WebUploadModel uploadModel)
         {
             if (uploadModel == null || uploadModel.Files.IsNullOrEmpty())
             {
@@ -42,16 +42,12 @@ namespace ImgRepo.Web.Controllers
             if (uploadModel.HasMultipleFiles())
             {
                 var dtos = uploadModel.GetNewImageDtos();
-                foreach (var img in dtos)
-                {
-                    var imgId = this._imageService.CreateImage(img);
-                    newImage ??= imgId;
-                }
+                newImage = await this._imageService.BatchCreateImageAsync(dtos, true);
                 return this.RedirectToAction("Index", "Image", new { id = newImage });
             }
             else
             {
-                newImage = this._imageService.CreateImage(uploadModel);
+                newImage = await this._imageService.CreateImageAsync(uploadModel);
             }
             return this.RedirectToAction("Index", "Image", new { id = newImage });
         }

@@ -101,13 +101,19 @@ namespace ImageHelperSharp
                         throw new Exception("Failed to get matrix");
                     }
 
+                    byte[]? result = null;
+
                     matPtr = OpenCVInterop.cv_get_differential_bfmatch((void*)lmat, (void*)rmat);
 
                     if (matPtr != null)
                     {
-                        return cv_mat_to_png_bytes((IntPtr)matPtr);
+                        result = cv_mat_to_png_bytes((IntPtr)matPtr);
                     }
-                    return null;
+
+                    cv_free_matrix_if_existing(ref lmat);
+                    cv_free_matrix_if_existing(ref rmat);
+
+                    return result;
                 }
             }
         }
