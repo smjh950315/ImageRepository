@@ -4,6 +4,9 @@ using System.Reflection;
 
 namespace ImgRepo.Service.CommonService
 {
+    /// <summary>
+    /// 連接主要物件與次要物件的服務
+    /// </summary>
     internal abstract class CommonObjectBindingServiceBase
     {
         static readonly Dictionary<string, MethodInfo> CachedMethods;
@@ -43,7 +46,7 @@ namespace ImgRepo.Service.CommonService
                 this.m_dataSource.GetWriter<TObjectBinding>().Remove(binding);
             }
             this.m_dataSource.Save();
-            return binding.Id;
+            return _subObjId;
         }
 
         protected IDataSource m_dataSource;
@@ -57,6 +60,13 @@ namespace ImgRepo.Service.CommonService
             this.m_dataSource = dataSource;
         }
 
+        /// <summary>
+        /// 被連結或解除連結的物件ID
+        /// </summary>
+        /// <param name="_mainObjId">主要物件ID</param>
+        /// <param name="_subObjId">次要物件ID</param>
+        /// <param name="_delete">是否刪除</param>
+        /// <returns>次要物件ID，或是0代表失敗</returns>
         public virtual long SetBinding(long _mainObjId, long _subObjId, bool _delete)
         {
             if (_mainObjId <= 0 || _subObjId <= 0) return 0;

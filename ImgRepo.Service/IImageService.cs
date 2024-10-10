@@ -22,6 +22,11 @@ namespace ImgRepo.Service
         /// <returns>新圖片的ID，如果失敗傳回0，發生例外回傳-1</returns>
         Task<long> CreateImageAsync(NewImageDto? imageDto);
 
+        /// <summary>
+        /// 建立新的圖片
+        /// </summary>
+        /// <param name="is_same_batch">是否為同一批次</param>
+        /// <returns>新圖片的ID，如果失敗傳回0，發生例外回傳-1</returns>
         Task<long> BatchCreateImageAsync(IEnumerable<NewImageDto> imageDtos, bool is_same_batch);
 
         /// <summary>

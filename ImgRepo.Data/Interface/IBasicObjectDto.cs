@@ -1,5 +1,8 @@
 ﻿namespace ImgRepo.Data.Interface
 {
+    /// <summary>
+    /// 基本物件資料傳輸物件
+    /// </summary>
     public interface IBasicObjectDto
     {
         /// <summary>

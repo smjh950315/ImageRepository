@@ -9,15 +9,27 @@ namespace ImgRepo.Model.Image
     /// </summary>
     public class ApiThumbFileModel : ApiFileModel, IImageFileUriConvertable
     {
+        /// <summary>
+        /// 圖片Id
+        /// </summary>
         [JsonPropertyName("imageId")]
         public long ImageId { get; set; }
 
+        /// <summary>
+        /// 圖片名稱
+        /// </summary>
         [JsonPropertyName("imageName")]
         public string ImageName { get; set; }
 
+        /// <summary>
+        /// 檔案紀錄Id
+        /// </summary>
         [JsonPropertyName("fileId")]
         public long FileId { get; set; }
 
+        /// <summary>
+        /// 實際檔案名稱(含副檔名)，不含路徑
+        /// </summary>
         [JsonPropertyName("uri")]
         public string Uri { get; set; }
     }

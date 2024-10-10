@@ -5,6 +5,9 @@ using ImgRepo.Service.Implement;
 
 namespace ImgRepo.Service
 {
+    /// <summary>
+    /// 注入服務用的委派產生工廠
+    /// </summary>
     public static class Factories
     {
         static Factories()
@@ -50,14 +53,5 @@ namespace ImgRepo.Service
         {
             return new FileAccessService(baseUri);
         }
-        //public static IAlbumService? GetAlbumService(IServiceProvider sp)
-        //{
-        //    object? dataSource = sp.GetService(typeof(IDataSource));
-        //    if (dataSource != null)
-        //    {
-        //        return (AlbumService)Activator.CreateInstance(typeof(AlbumService), dataSource);
-        //    }
-        //    return null;
-        //}
     }
 }

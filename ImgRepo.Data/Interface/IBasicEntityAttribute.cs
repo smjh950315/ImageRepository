@@ -1,5 +1,8 @@
 ﻿namespace ImgRepo.Data.Interface
 {
+    /// <summary>
+    /// 基本物件屬性的介面
+    /// </summary>
     public interface IBasicEntityAttribute
     {
         /// <summary>

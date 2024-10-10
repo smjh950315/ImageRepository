@@ -2,6 +2,9 @@
 
 namespace ImgRepo.Model.Query
 {
+    /// <summary>
+    /// 查詢條件
+    /// </summary>
     public class ApiCondition
     {
         [JsonPropertyName("type")]

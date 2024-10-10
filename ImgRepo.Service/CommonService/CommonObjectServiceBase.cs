@@ -12,6 +12,9 @@ using System.Reflection;
 
 namespace ImgRepo.Service.CommonService
 {
+    /// <summary>
+    /// 物件與屬性相關服務
+    /// </summary>
     internal abstract class CommonObjectServiceBase : ICommonObjectService
     {
         static readonly Dictionary<string, MethodInfo> CachedMethods;

@@ -6,8 +6,22 @@ namespace ImgRepo.Service
 {
     public interface ICommonObjectService
     {
+        /// <summary>
+        /// 設定物件屬性
+        /// </summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <param name="objectId">物件ID</param>
+        /// <param name="attrValue">要設定的屬性名稱</param>
+        /// <param name="_delete">是否刪除</param>
+        /// <returns>設定的屬性ID 或是0表示失敗</returns>
         long SetAttribute<TAttribute>(long objectId, string attrValue, bool _delete) where TAttribute : class, IBasicEntityAttribute, new();
 
+        /// <summary>
+        /// 取得物件屬性的IQeuryable類型
+        /// </summary>
+        /// <typeparam name="TAttribute">物件屬性</typeparam>
+        /// <param name="objectId">物件資訊的IQ</param>
+        /// <returns>IQeuryable</returns>
         IQueryable<BasicInfo> GetAttributeQueryable<TAttribute>(long objectId) where TAttribute : class, IBasicEntityAttribute, new();
 
         /// <summary>
@@ -32,6 +46,11 @@ namespace ImgRepo.Service
         /// <returns>對應ID的物件基本資訊，如果物件ID無效回傳null，發生例外回傳-1</returns>
         BasicDetails? GetBasicDetails(long objectId);
 
+        /// <summary>
+        /// 用查詢Model取得物件ID的IQeuryable類型
+        /// </summary>
+        /// <param name="queryModel">查詢Model</param>
+        /// <returns>物件ID的IQeuryable類型</returns>
         IQueryable<long> GetQueryableIdsByQueryModel(QueryModel? queryModel);
     }
 }
