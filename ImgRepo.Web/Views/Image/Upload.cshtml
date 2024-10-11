@@ -5,7 +5,8 @@
 }
 
 <div class="container" style="width:768px;">
-    <form method="post" action="Upload" enctype="multipart/form-data">
+    <form method="post" action="StreamUpload" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
         <div>
             上傳圖片
         </div>
@@ -27,11 +28,25 @@
         </div>
         <div class="form-control row">
             <label class="col-3 text-center">檔案</label>
-            <input name="Files" type="file" multiple accept=".jpg, .jpeg, .png" />
+            <input id="ImageFiles" name="Files" type="file" multiple accept=".jpg, .jpeg, .png, .gif" />
         </div>
         <div class="form-control row">
             <label class="col-3 text-center">操作</label>
             <button class="btn" type="submit">上傳</button>
-        </div>        
+        </div>
+        <div class="col-md-offset-2 col-md-10">
+            <img id="img-preview" style="max-width:800px; max-height:800px;" class="img-fluid" type="file" />
+        </div>
     </form>
 </div>
+<script>
+    $('#ImageFiles').change(() => {
+        let FR = new FileReader();
+        let file = document.getElementById('ImageFiles').files[0];
+        FR.readAsDataURL(file);
+        FR.onload = function (event) {
+            let src = event.target.result;
+            $('#img-preview').attr('src', src);
+        }
+    });
+</script>

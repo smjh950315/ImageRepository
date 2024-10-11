@@ -12,6 +12,10 @@ namespace ImgRepo.Web
             return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.Limits.MaxRequestBodySize = 524288000; // 50MB
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
         }

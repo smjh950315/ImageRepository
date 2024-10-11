@@ -1,5 +1,8 @@
-﻿using Cyh.Net.Data;
+﻿using Cyh.Net;
+using Cyh.Net.Data;
 using ImgRepo.Model;
+using ImgRepo.Web.StreamFileHelper;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 
 namespace ImgRepo.Web
@@ -16,7 +19,11 @@ namespace ImgRepo.Web
         public void ConfigureServices(IServiceCollection services)
         {
             string? connStr = this.m_configuration.GetConnectionString("DbConnectionSql");
-
+            services.Configure<IISOptions>(options =>
+            {
+                options.AutomaticAuthentication = false;
+                options.ForwardClientCertificate = false;
+            });
             services.AddDbContext<ImageRepositoryContext>(opt =>
             {
                 opt.UseSqlServer(connStr);
@@ -28,6 +35,11 @@ namespace ImgRepo.Web
             });
 
             string? filePath = this.m_configuration.GetSection("FileServer")["Root"];
+
+            if (filePath.IsNullOrEmpty())
+            {
+                throw new Exception("FileServer Root is not set in appsettings.json");
+            }
 
             services.AddScoped(sp => ImgRepo.Service.Factories.GetFileAccessService(sp, filePath));
             services.AddScoped(ImgRepo.Service.Factories.GetImageService);
@@ -46,7 +58,23 @@ namespace ImgRepo.Web
                 policy.Methods.Add("*");
                 opt.AddDefaultPolicy(policy);
             });
-            services.AddRazorPages();
+            services.AddRazorPages(op =>
+            {
+                op.Conventions.AddPageApplicationModelConvention("/StreamedSingleFileUploadPhysical", model =>
+                {
+                    model.Filters.Add(new GenerateAntiforgeryTokenCookieAttribute());
+                    model.Filters.Add(new DisableFormValueModelBindingAttribute());
+                });
+            });
+            services.Configure<FormOptions>(options =>
+            {
+                options.BufferBodyLengthLimit = long.MaxValue;
+                options.KeyLengthLimit = int.MaxValue;
+                options.MultipartBodyLengthLimit = long.MaxValue;
+                options.MultipartBoundaryLengthLimit = int.MaxValue;
+                options.ValueCountLimit = int.MaxValue;
+                options.ValueLengthLimit = int.MaxValue;
+            });
         }
 
 

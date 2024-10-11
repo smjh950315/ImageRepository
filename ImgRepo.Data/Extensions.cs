@@ -10,7 +10,7 @@ namespace ImgRepo.Data
         /// <returns>檔案Uri</returns>
         public static string GetFullUri(this IImageFileUriConvertable imageFileUriConvertable)
         {
-            return $"image/{imageFileUriConvertable.Uri}.{imageFileUriConvertable.Format}";
+            return $"image/{imageFileUriConvertable.Uri}";
         }
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace ImgRepo.Data
         /// <returns>檔案Uri</returns>
         public static string GetThumbFullUri(this IImageFileUriConvertable imageFileUriConvertable)
         {
-            return $"image/{imageFileUriConvertable.Uri}_thumb.{imageFileUriConvertable.Format}";
+            return $"image/{imageFileUriConvertable.Uri}_thumb";
         }
     }
 }

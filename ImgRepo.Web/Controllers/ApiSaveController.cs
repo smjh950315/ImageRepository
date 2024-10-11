@@ -55,19 +55,5 @@ namespace ImgRepo.Web.Controllers
             long cateId = this._imageService.RemoveCategory(apiAttributeEdit.Id, apiAttributeEdit.Value ?? String.Empty);
             return cateId > 0 ? this._commonAttributeService.GetCategoryDetail(cateId) : null;
         }
-
-        [HttpPost]
-        [Route("image/upload")]
-        public async Task<IActionResult> Upload(ApiUploadModel uploadModel)
-        {
-            if (uploadModel.File == null)
-            {
-                this.ModelState.AddModelError("UploadBytes", "Please upload an image");
-                return this.NoContent();
-            }
-            var newImageId = await this._imageService.CreateImageAsync(uploadModel);
-            if (newImageId == 0) return this.NoContent();
-            return this.Ok();
-        }
     }
 }

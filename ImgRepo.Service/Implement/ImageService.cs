@@ -45,7 +45,7 @@ namespace ImgRepo.Service.Implement
             Uri = f.Uri,
         });
 
-        long updateAuthorIdUnchecked(ImageInformation image, long? authorDataId)
+        long _UpdateAuthorIdUnchecked(ImageInformation image, long? authorDataId)
         {
             image.ArtistId = authorDataId;
             image.Updated = DateTime.Now;
@@ -53,170 +53,6 @@ namespace ImgRepo.Service.Implement
             if (!Lib.TryExecute(() => this.m_dataSource.Save())) return -1;
             return authorDataId ?? 0;
         }
-
-        long CreateImageRecord(NewImageDto imageDto, Guid guid)
-        {
-            ImageFileData imageFileData = new ImageFileData
-            {
-                FileName = imageDto.FileName,
-                Width = imageDto.ImInfo.Size.Width,
-                Height = imageDto.ImInfo.Size.Height,
-                Channel = imageDto.ImInfo.Channels,
-                FileSize = imageDto.Data.Length,
-                Format = imageDto.ImInfo.Format,
-                Uri = guid.ToString(),
-            };
-            this.m_imageFileWriter.Add(imageFileData);
-            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return 0;
-            var image = new ImageInformation
-            {
-                Name = imageDto.Name,
-                Description = imageDto.Description,
-                Created = DateTime.Now,
-                FileId = imageFileData.Id,
-            };
-            this.m_imageWriter.Add(image);
-            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return 0;
-            if (!imageDto.Tags.IsNullOrEmpty())
-            {
-                var tagIds = new CommonAttributeService(this.m_dataSource).GetIdsByNames<TagInformation>(imageDto.Tags);
-                this.BatchLinkObjectAttributesUnchecked<TagInformation>([image.Id], tagIds);
-            }
-            if (!imageDto.Categories.IsNullOrEmpty())
-            {
-                var cateIds = new CommonAttributeService(this.m_dataSource).GetIdsByNames<CategoryInformation>(imageDto.Categories);
-                this.BatchLinkObjectAttributesUnchecked<TagInformation>([image.Id], cateIds);
-            }
-            return image.Id;
-        }
-        long BatchCreateImageRecord(IDictionary<Guid, NewImageDto> imageDtos, bool is_same_batch)
-        {
-            List<ImageInformation> imageInformations = new List<ImageInformation>();
-            List<ImageFileData> imageFileDatas = new List<ImageFileData>();
-            foreach (var imageDto in imageDtos)
-            {
-                imageInformations.Add(new ImageInformation
-                {
-                    Name = imageDto.Value.Name,
-                    Description = imageDto.Value.Description,
-                    Created = DateTime.Now,
-                });
-                imageFileDatas.Add(new ImageFileData
-                {
-                    FileName = imageDto.Value.FileName,
-                    Width = imageDto.Value.ImInfo.Size.Width,
-                    Height = imageDto.Value.ImInfo.Size.Height,
-                    Channel = imageDto.Value.ImInfo.Channels,
-                    FileSize = imageDto.Value.Data.Length,
-                    Format = imageDto.Value.ImInfo.Format,
-                    Uri = imageDto.Key.ToString(),
-                });
-            }
-            this.m_imageFileWriter.AddRange(imageFileDatas);
-            this.m_dataSource.Save();
-
-            for (int i = 0; i < imageInformations.Count; i++)
-            {
-                imageInformations[i].FileId = imageFileDatas[i].Id;
-            }
-            this.m_imageWriter.AddRange(imageInformations);
-            this.m_dataSource.Save();
-            var commonAttrService = new CommonAttributeService(this.m_dataSource);
-            if (is_same_batch)
-            {
-                var tagIds = commonAttrService.GetIdsByNames<TagInformation>(imageDtos.First().Value.Tags);
-                var cateIds = commonAttrService.GetIdsByNames<CategoryInformation>(imageDtos.First().Value.Categories);
-
-                this.BatchLinkObjectAttributesUnchecked<TagInformation>(imageInformations.Select(x => x.Id), tagIds);
-                this.BatchLinkObjectAttributesUnchecked<CategoryInformation>(imageInformations.Select(x => x.Id), cateIds);
-            }
-            else
-            {
-                var dtoIterator = imageDtos.GetEnumerator();
-                for (int i = 0; i < imageInformations.Count && dtoIterator.MoveNext(); i++)
-                {
-                    var tagIds = commonAttrService.GetIdsByNames<TagInformation>(dtoIterator.Current.Value.Tags);
-                    this.LinkObjectAttributesUnchecked<TagInformation>(imageInformations[i].Id, tagIds);
-
-                    var cateIds = commonAttrService.GetIdsByNames<CategoryInformation>(dtoIterator.Current.Value.Categories);
-                    this.LinkObjectAttributesUnchecked<CategoryInformation>(imageInformations[i].Id, cateIds);
-                }
-            }
-            return imageInformations.First().Id;
-        }
-
-        async Task _WriteToFileAsync(ImageContentData imageContentData)
-        {
-            if (imageContentData.Guid == Guid.Empty || imageContentData == null) return;
-            if (imageContentData.Data.IsNullOrEmpty()) return;
-
-            Task<bool> resizeAndWrite = Task.Run(() =>
-            {
-                var thumbnailBytes = ImageHelperSharp.StbService.Resize(imageContentData.Data, 256, 256);
-                if (thumbnailBytes.IsNullOrEmpty()) return false;
-                string thumbUriName = $"{imageContentData.Guid}_thumb.{imageContentData.ExtName}";
-                return this.m_fileAccessService.SaveObject("image", thumbUriName, imageContentData.Data);
-            });
-            string uriName = $"{imageContentData.Guid}.{imageContentData.ExtName}";
-            this.m_fileAccessService.SaveObject("image", uriName, imageContentData.Data);
-            await resizeAndWrite;
-        }
-
-        async Task _BatchWriteToFile(IEnumerable<ImageContentData> imageContentDatas)
-        {
-            List<Task> tasks = new List<Task>();
-            foreach (var imageContentData in imageContentDatas)
-            {
-                tasks.Add(this._WriteToFileAsync(imageContentData));
-            }
-            tasks.ForEach(async x => await x);
-            await Parallel.ForEachAsync(imageContentDatas, async (content, cancellationToken) =>
-            {
-                await this._WriteToFileAsync(content);
-            });
-        }
-
-
-        async Task<long> _CreateImageAsync(NewImageDto? imageDto)
-        {
-            if (imageDto == null) return 0;
-            var guid = Guid.NewGuid();
-            var taskWriteFile = this._WriteToFileAsync(new ImageContentData
-            {
-                Guid = guid,
-                Data = imageDto.Data,
-                ExtName = imageDto.ImInfo.Format
-            });
-            var imageId = this.CreateImageRecord(imageDto, guid);
-            if (imageId == 0)
-            {
-                return 0;
-            }
-            await taskWriteFile;
-            return imageId;
-        }
-
-        async Task<long> _BatchCreateImageAsync(IEnumerable<NewImageDto> imageDtos, bool is_same_batch)
-        {
-            List<ImageContentData> imageContentDatas = new();
-            Dictionary<Guid, NewImageDto> imageDtosDict = new();
-            foreach (var imageDto in imageDtos)
-            {
-                var guid = Guid.NewGuid();
-                imageContentDatas.Add(new ImageContentData
-                {
-                    Guid = guid,
-                    Data = imageDto.Data,
-                    ExtName = imageDto.ImInfo.Format
-                });
-                imageDtosDict[guid] = imageDto;
-            }
-            var fCreate = this._BatchWriteToFile(imageContentDatas);
-            var imgId = this.BatchCreateImageRecord(imageDtosDict, is_same_batch);
-            await fCreate;
-            return imgId;
-        }
-
 
         public ImageService(IDataSource dataSource, IFileAccessService fileAccessService) : base(dataSource)
         {
@@ -229,14 +65,29 @@ namespace ImgRepo.Service.Implement
             this.m_fileAccessService = fileAccessService;
         }
 
-        public Task<long> CreateImageAsync(NewImageDto? imageDto)
+        public IEnumerable<long> BatchCreateImage(BatchNewImageDto? batchNewImageDto)
         {
-            return this._CreateImageAsync(imageDto);
-        }
-
-        public Task<long> BatchCreateImageAsync(IEnumerable<NewImageDto> imageDtos, bool is_same_batch)
-        {
-            return this._BatchCreateImageAsync(imageDtos, is_same_batch);
+            if (batchNewImageDto == null) return Array.Empty<long>();
+            IEnumerable<ImageFileData> imageFileDatas = batchNewImageDto.GetReadyToSaveFileDatas();
+            if (imageFileDatas.IsNullOrEmpty()) return Array.Empty<long>();
+            this.m_imageFileWriter.AddRange(imageFileDatas);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return Array.Empty<long>();
+            IEnumerable<ImageInformation> imageInformations = batchNewImageDto.GetReadyToSaveImageInformations();
+            if (imageInformations.IsNullOrEmpty()) return Array.Empty<long>();
+            this.m_imageWriter.AddRange(imageInformations);
+            if (!Lib.TryExecute(() => this.m_dataSource.Save())) return Array.Empty<long>();
+            CommonAttributeService commonAttrService = new CommonAttributeService(this.m_dataSource);
+            if (batchNewImageDto.Tags.Length > 0)
+            {
+                IEnumerable<long> tagIds = commonAttrService.GetIdsByNames<TagInformation>(batchNewImageDto.Tags);
+                this.BatchLinkObjectAttributesUnchecked<TagInformation>(imageInformations.Select(x => x.Id), tagIds);
+            }
+            if (batchNewImageDto.Categories.Length > 0)
+            {
+                IEnumerable<long> cateIds = commonAttrService.GetIdsByNames<CategoryInformation>(batchNewImageDto.Categories);
+                this.BatchLinkObjectAttributesUnchecked<TagInformation>(imageInformations.Select(x => x.Id), cateIds);
+            }
+            return imageInformations.Select(x => x.Id);
         }
 
         public double GetImageDifferential(long lhsId, long rhsId)
@@ -267,24 +118,24 @@ namespace ImgRepo.Service.Implement
 
             if (_delete)
             {
-                return image.ArtistId.HasValue ? this.updateAuthorIdUnchecked(image, null) : 0;
+                return image.ArtistId.HasValue ? this._UpdateAuthorIdUnchecked(image, null) : 0;
             }
             else
             {
                 ArtistInformation? author = this.m_artists.FirstOrDefault(a => a.Id == authorDataId);
                 if (author == null)
                 {
-                    return image.ArtistId.HasValue ? this.updateAuthorIdUnchecked(image, null) : 0;
+                    return image.ArtistId.HasValue ? this._UpdateAuthorIdUnchecked(image, null) : 0;
                 }
 
                 if (image.ArtistId.HasValue)
                 {
                     if (image.ArtistId.Value == authorDataId) return authorDataId;
-                    return this.updateAuthorIdUnchecked(image, authorDataId);
+                    return this._UpdateAuthorIdUnchecked(image, authorDataId);
                 }
                 else
                 {
-                    return this.updateAuthorIdUnchecked(image, authorDataId);
+                    return this._UpdateAuthorIdUnchecked(image, authorDataId);
                 }
             }
         }
@@ -294,12 +145,15 @@ namespace ImgRepo.Service.Implement
             if (imgId == 0) return null;
             MetaImageFileBinding? meta = this.ImageFiles.FirstOrDefault(x => x.ImageId == imgId);
             if (meta == null) return null;
-            byte[] data = this.m_fileAccessService.GetFile(meta.GetFullUri());
+            //byte[] data = this.m_fileAccessService.GetFile(meta.GetFullUri());
             return new ApiFileModel
             {
-                FileName = meta.FileName,
+                //FileName = meta.FileName,
+                //Format = meta.Format,
+                //Base64 = Convert.ToBase64String(data),
+                FileName = meta.Uri,
                 Format = meta.Format,
-                Base64 = Convert.ToBase64String(data),
+                Base64 = "",
             };
         }
 

@@ -15,7 +15,7 @@ namespace ImgRepo.Service.CommonService
         {
             CachedMethods = new();
             string implPrefix = "Impl_";
-            var methodImpls = typeof(CommonObjectBindingServiceBase).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            MethodInfo[] methodImpls = typeof(CommonObjectBindingServiceBase).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
             foreach (MethodInfo method in methodImpls)
             {
                 if (!method.Name.Contains(implPrefix)) continue;
@@ -28,8 +28,8 @@ namespace ImgRepo.Service.CommonService
             where TSubObject : class, IBasicEntityInformation, new()
             where TObjectBinding : class, IObjectBindingRecord, new()
         {
-            var bindings = this.m_dataSource.GetQueryable<TObjectBinding>();
-            var binding = bindings.FirstOrDefault(x => x.MainObjectId == _mainObjId && x.SubObjectId == _subObjId);
+            IQueryable<TObjectBinding> bindings = this.m_dataSource.GetQueryable<TObjectBinding>();
+            TObjectBinding? binding = bindings.FirstOrDefault(x => x.MainObjectId == _mainObjId && x.SubObjectId == _subObjId);
             if (binding == null)
             {
                 if (_delete) return 0;

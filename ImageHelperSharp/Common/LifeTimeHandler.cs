@@ -46,7 +46,7 @@
                     this.m_handle_address = null;
                     this.m_freeHandle = null;
 
-                    if(this.m_cs_handle_address != null && this.m_cs_freeHandle != null)
+                    if (this.m_cs_handle_address != null && this.m_cs_freeHandle != null)
                     {
                         if (*this.m_cs_handle_address != IntPtr.Zero)
                         {

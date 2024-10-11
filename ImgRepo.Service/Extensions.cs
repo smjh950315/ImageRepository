@@ -102,7 +102,7 @@ namespace ImgRepo.Service
         /// <returns>物件ID</returns>
         public static IEnumerable<long> GetIdsByQueryModel(this ICommonObjectService commonObjectService, QueryModel? queryModel, DataRange? range = null)
         {
-            var distinctResult = commonObjectService.GetQueryableIdsByQueryModel(queryModel).Distinct();
+            IQueryable<long> distinctResult = commonObjectService.GetQueryableIdsByQueryModel(queryModel).Distinct();
             return (range != null
                 ? distinctResult.Skip(range.Begin).Take(range.Count)
                 : distinctResult).ToList();

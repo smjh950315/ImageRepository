@@ -23,7 +23,7 @@ namespace ImgRepo.Service.CommonService
         {
             CachedMethods = new();
             string implPrefix = "Impl_";
-            var methodImpls = typeof(CommonObjectServiceBase).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+            MethodInfo[] methodImpls = typeof(CommonObjectServiceBase).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
             foreach (MethodInfo methodImpl in methodImpls)
             {
                 if (!methodImpl.Name.Contains(implPrefix)) continue;
@@ -75,8 +75,8 @@ namespace ImgRepo.Service.CommonService
             where TAttribute : class, IBasicEntityAttribute, new()
         {
             long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
-            var records = this.m_dataSource.GetQueryable<TRecord>();
-            var attrs = this.m_dataSource.GetQueryable<TAttribute>();
+            IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
+            IQueryable<TAttribute> attrs = this.m_dataSource.GetQueryable<TAttribute>();
             return records
                 .Where(r => r.AttrType == attrTypeId)
                 .Join(attrs, r => r.AttrId, a => a.Id, (r, a) => new
@@ -92,11 +92,11 @@ namespace ImgRepo.Service.CommonService
         {
             long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
 
-            var record = this.NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(objectId, attrValue);
+            TRecord? record = this.NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(objectId, attrValue);
 
             if (record == null)
             {
-                var attrId = new CommonAttributeService(this.m_dataSource).GetIdByName<TAttribute>(attrValue);
+                long attrId = new CommonAttributeService(this.m_dataSource).GetIdByName<TAttribute>(attrValue);
                 this.m_dataSource.GetWriter<TRecord>().Add(new TRecord
                 {
                     ObjectId = objectId,
@@ -113,11 +113,11 @@ namespace ImgRepo.Service.CommonService
             where TRecord : class, IBasicEntityRecord, new()
             where TAttribute : class, IBasicEntityAttribute, new()
         {
-            var record = this.NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(objectId, attrValue);
+            TRecord? record = this.NoFuncDependency_GetAttributeRecord<TRecord, TAttribute>(objectId, attrValue);
 
             if (record != null)
             {
-                var attrId = new CommonAttributeService(this.m_dataSource).GetIdByName<TAttribute>(attrValue);
+                long attrId = new CommonAttributeService(this.m_dataSource).GetIdByName<TAttribute>(attrValue);
                 this.m_dataSource.GetWriter<TRecord>().Remove(record);
                 this.m_dataSource.Save();
                 return attrId;
@@ -132,9 +132,9 @@ namespace ImgRepo.Service.CommonService
         {
             long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
             {
-                var writer = this.m_dataSource.GetWriter<TRecord>();
+                IDataWriter<TRecord> writer = this.m_dataSource.GetWriter<TRecord>();
                 List<TRecord> newRecords = new List<TRecord>();
-                foreach (var attrId in attrIds)
+                foreach (long attrId in attrIds)
                 {
                     newRecords.Add(new TRecord
                     {
@@ -155,11 +155,11 @@ namespace ImgRepo.Service.CommonService
         {
             long attrTypeId = AttributeType.GetAttributeTypeId<TAttribute>();
             {
-                var writer = this.m_dataSource.GetWriter<TRecord>();
+                IDataWriter<TRecord> writer = this.m_dataSource.GetWriter<TRecord>();
                 List<TRecord> newRecords = new List<TRecord>();
-                foreach (var objectId in objectIds)
+                foreach (long objectId in objectIds)
                 {
-                    foreach (var attrId in attrIds)
+                    foreach (long attrId in attrIds)
                     {
                         newRecords.Add(new TRecord
                         {
@@ -194,9 +194,9 @@ namespace ImgRepo.Service.CommonService
             }
 
             {
-                var writer = this.m_dataSource.GetWriter<TRecord>();
+                IDataWriter<TRecord> writer = this.m_dataSource.GetWriter<TRecord>();
                 List<TRecord> newRecords = new List<TRecord>();
-                foreach (var attrId in shouldAddIds)
+                foreach (long attrId in shouldAddIds)
                 {
                     newRecords.Add(new TRecord
                     {
@@ -309,9 +309,9 @@ namespace ImgRepo.Service.CommonService
                     }
                     case CompareType.ContainsAnyOf:
                     {
-                        var iterator = names.GetEnumerator();
+                        System.Collections.IEnumerator iterator = names.GetEnumerator();
                         iterator.MoveNext();
-                        var first = (string)iterator.Current;
+                        string first = (string)iterator.Current;
                         IQueryable<long> ids = result.Where(x => x.AttrName.Contains(first) || x.AttrName == first).Select(x => x.ObjectId);
                         while (iterator.MoveNext())
                         {
@@ -324,9 +324,9 @@ namespace ImgRepo.Service.CommonService
                     }
                     case CompareType.IncludedByAnyOf:
                     {
-                        var iterator = names.GetEnumerator();
+                        System.Collections.IEnumerator iterator = names.GetEnumerator();
                         iterator.MoveNext();
-                        var first = (string)iterator.Current;
+                        string first = (string)iterator.Current;
                         IQueryable<long> ids = result.Where(x => first.Contains(x.AttrName) || first == x.AttrName).Select(x => x.ObjectId);
                         while (iterator.MoveNext())
                         {
@@ -471,7 +471,7 @@ namespace ImgRepo.Service.CommonService
                         }
                         else
                         {
-                            var targetAttrType = AttributeType.GetAttributeType(cond.Type);
+                            Type? targetAttrType = AttributeType.GetAttributeType(cond.Type);
 
                             if (targetAttrType != null)
                             {

@@ -21,7 +21,7 @@ namespace ImgRepo.Service.Implement
 
         public long CreateNewUnchecked<TAttribute>(string value) where TAttribute : class, IBasicEntityAttribute, new()
         {
-            var newAttr = new TAttribute
+            TAttribute newAttr = new TAttribute
             {
                 Value = value,
                 Created = DateTime.Now,
@@ -51,7 +51,7 @@ namespace ImgRepo.Service.Implement
 
                 if (existingAttrs.Any())
                 {
-                    var existingValues = existingAttrs.Select(x => x.Name!);
+                    IQueryable<string> existingValues = existingAttrs.Select(x => x.Name!);
                     requiredToAddValues = values.Except(existingValues);
                     idResults = existingAttrs.Select(x => x.Id).ToList();
                 }
@@ -63,7 +63,7 @@ namespace ImgRepo.Service.Implement
 
             List<TAttribute> newAttrs = new List<TAttribute>();
             {
-                foreach (var requiredToAddValue in requiredToAddValues)
+                foreach (string requiredToAddValue in requiredToAddValues)
                 {
                     newAttrs.Add(new TAttribute
                     {
@@ -75,7 +75,7 @@ namespace ImgRepo.Service.Implement
                 if (!Lib.TryExecute(() => this.m_dataSource.Save())) return Enumerable.Empty<long>();
             }
 
-            var newIds = newAttrs.Select(x => x.Id);
+            IEnumerable<long> newIds = newAttrs.Select(x => x.Id);
 
             return idResults != null ? idResults.Concat(newIds) : newIds;
         }
@@ -94,10 +94,10 @@ namespace ImgRepo.Service.Implement
 
         public BasicDetails? GetDetailById<TAttribute>(long id) where TAttribute : class, IBasicEntityAttribute, new()
         {
-            var queryable = this.m_dataSource.GetQueryable<TAttribute>();
+            IQueryable<TAttribute> queryable = this.m_dataSource.GetQueryable<TAttribute>();
             if (queryable is DbSet<TAttribute> set)
             {
-                var entity = set.Find(id);
+                TAttribute? entity = set.Find(id);
                 if (entity is null) return null;
                 return new BasicDetails
                 {

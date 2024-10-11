@@ -22,6 +22,7 @@ namespace ImgRepo.Web.Controllers
         [Route("image/thumbnails")]
         public IEnumerable<ApiThumbFileModel> GetThumbnails(QueryModel? queryModel)
         {
+            GC.Collect();
             return this._imageService.GetThumbnails(queryModel);
         }
 

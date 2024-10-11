@@ -22,7 +22,7 @@ namespace ImgRepo.Service.Implement
 
             using (this.m_dataSource.BeginTransaction())
             {
-                var artist = new ArtistInformation
+                ArtistInformation artist = new ArtistInformation
                 {
                     Name = artistDto.Name,
                     Description = artistDto.Description,

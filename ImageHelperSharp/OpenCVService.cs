@@ -89,7 +89,7 @@ namespace ImageHelperSharp
             unsafe
             {
                 void* matPtr = null;
-                using (var lifeTimeHandler = new LifeTimeHandler(&matPtr, &OpenCVInterop.cv_free_matrix))
+                using (LifeTimeHandler lifeTimeHandler = new LifeTimeHandler(&matPtr, &OpenCVInterop.cv_free_matrix))
                 {
                     IntPtr lmat = cv_get_matrix(limage);
                     IntPtr rmat = cv_get_matrix(rimage);

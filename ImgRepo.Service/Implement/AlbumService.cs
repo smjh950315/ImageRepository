@@ -41,7 +41,7 @@ namespace ImgRepo.Service.Implement
             if (albumDto == null) return 0;
             using (this.m_dataSource.BeginTransaction())
             {
-                var album = new AlbumInformation
+                AlbumInformation album = new AlbumInformation
                 {
                     Name = albumDto.Name,
                     Description = albumDto.Description,

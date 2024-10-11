@@ -16,11 +16,23 @@
             }
         }
 
-        public byte[] GetFile(string uri)
+        public byte[] GetFile(string uri, long size)
         {
             try
             {
-                return File.ReadAllBytes(this.m_basePath + uri);
+                if (size == 0)
+                {
+                    return File.ReadAllBytes(this.m_basePath + uri);
+                }
+                else
+                {
+                    using (FileStream fs = File.OpenRead(this.m_basePath + uri))
+                    {
+                        byte[] buffer = new byte[size];
+                        fs.Read(buffer, 0, buffer.Length);
+                        return buffer;
+                    }
+                }
             }
             catch
             {
@@ -55,6 +67,27 @@
             catch
             {
                 return false;
+            }
+        }
+
+        public Stream GetWriteStream(string uri)
+        {
+            if (!Directory.Exists(Path.GetDirectoryName(this.m_basePath + uri)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(this.m_basePath + uri));
+            }
+            return File.Create(this.m_basePath + uri);
+        }
+
+        public long GetFileSize(string uri)
+        {
+            try
+            {
+                return new FileInfo(this.m_basePath + uri).Length;
+            }
+            catch
+            {
+                return 0;
             }
         }
     }
