@@ -49,13 +49,13 @@ class ImgRepoImageIndexHelper {
     static LoadImage(_baseUrl) {
         let imgId = Number($("#image-id").text());
         ImgRepoCommon.HttpGet(_baseUrl + "api/query/image/file/" + imgId, (data) => {
-            let cppFileServerUrl = "http://localhost:8081/api/get/image/" + data.filename;
-            ImgRepoCommon.HttpGet(cppFileServerUrl, (fApi) => {
-                $("#image-view").attr("src", `data:image/${data.format};base64,` + fApi.base64);
-            }, (err) => {
-                console.log(err);
-            });
-            //$("#image-view").attr("src", `data:image/${data.format};base64,` + data.base64);
+            //let cppFileServerUrl = "http://localhost:8081/api/get/image/" + data.filename;
+            //ImgRepoCommon.HttpGet(cppFileServerUrl, (fApi) => {
+            //    $("#image-view").attr("src", `data:image/${data.format};base64,` + fApi.base64);
+            //}, (err) => {
+            //    console.log(err);
+            //});
+            $("#image-view").attr("src", `data:image/${data.format};base64,` + data.base64);
         });
     }
     static LoadTags(_baseUrl) {

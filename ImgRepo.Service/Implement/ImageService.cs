@@ -145,15 +145,15 @@ namespace ImgRepo.Service.Implement
             if (imgId == 0) return null;
             MetaImageFileBinding? meta = this.ImageFiles.FirstOrDefault(x => x.ImageId == imgId);
             if (meta == null) return null;
-            //byte[] data = this.m_fileAccessService.GetFile(meta.GetFullUri());
+            byte[] data = this.m_fileAccessService.GetFile(meta.GetFullUri());
             return new ApiFileModel
             {
-                //FileName = meta.FileName,
-                //Format = meta.Format,
-                //Base64 = Convert.ToBase64String(data),
-                FileName = meta.Uri,
+                FileName = meta.FileName,
                 Format = meta.Format,
-                Base64 = "",
+                Base64 = Convert.ToBase64String(data),
+                //FileName = meta.Uri,
+                //Format = meta.Format,
+                //Base64 = "",
             };
         }
 
