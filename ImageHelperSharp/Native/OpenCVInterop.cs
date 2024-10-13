@@ -11,10 +11,10 @@ namespace ImageHelperSharp.Native
         internal static extern void cv_free_matrix(void* matPtr);
 
         [DllImport(DllPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cv_get_differential_by_mse")]
-        internal static extern double cv_get_differential_by_mse(void* lmat, void* rmat);
+        internal static extern int cv_get_differential_by_mse(void* lmat, void* rmat, ref double result);
 
-        [DllImport(DllPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cv_get_differential_by_ssim")]
-        internal static extern double cv_get_differential_by_ssim(void* lmat, void* rmat);
+        [DllImport(DllPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cv_get_ssim_similarity")]
+        internal static extern int cv_get_ssim_similarity(void* lmat, void* rmat, ref double result);
 
         [DllImport(DllPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cv_get_differential_bfmatch")]
         internal static extern void* cv_get_differential_bfmatch(void* lmat, void* rmat);

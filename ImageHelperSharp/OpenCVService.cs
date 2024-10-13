@@ -65,26 +65,64 @@ namespace ImageHelperSharp
                 throw new Exception("Failed to get matrix");
             }
 
+            int success;
             double differentialValue = -1;
             try
             {
                 unsafe
                 {
-                    differentialValue = OpenCVInterop.cv_get_differential_by_mse((void*)lmat, (void*)rmat);
+                    success = OpenCVInterop.cv_get_differential_by_mse((void*)lmat, (void*)rmat, ref differentialValue);
                 }
             }
             catch
             {
+                success = -1;
             }
             finally
             {
                 cv_free_matrix_if_existing(ref lmat);
                 cv_free_matrix_if_existing(ref rmat);
             }
-            return differentialValue;
+
+            return success == -1 ? throw new Exception("Failed to get differential value") : differentialValue;
         }
 
-        public static byte[]? GetPatterMatchImage(byte[] limage, byte[] rimage)
+        public static double GetSSIMSimilarity(byte[] lhs, byte[] rhs)
+        {
+            byte[] ltemp = StbService.Resize(lhs, 256, 256, 0, false);
+            byte[] rtemp = StbService.Resize(rhs, 256, 256, 0, false);
+            IntPtr lmat = cv_get_matrix(ltemp);
+            IntPtr rmat = cv_get_matrix(rtemp);
+            if (lmat == IntPtr.Zero || rmat == IntPtr.Zero)
+            {
+                cv_free_matrix_if_existing(ref lmat);
+                cv_free_matrix_if_existing(ref rmat);
+                throw new Exception("Failed to get matrix");
+            }
+
+            int success;
+            double differentialValue = -1;
+            try
+            {
+                unsafe
+                {
+                    success = OpenCVInterop.cv_get_ssim_similarity((void*)lmat, (void*)rmat, ref differentialValue);
+                }
+            }
+            catch
+            {
+                success = -1;
+            }
+            finally
+            {
+                cv_free_matrix_if_existing(ref lmat);
+                cv_free_matrix_if_existing(ref rmat);
+            }
+
+            return success == -1 ? throw new Exception("Failed to get ssim similarity") : differentialValue;
+        }
+
+        public static byte[]? GetPatternMatchImage(byte[] limage, byte[] rimage)
         {
             unsafe
             {

@@ -17,6 +17,7 @@ namespace ConsoleTest
 
             var img2 = File.ReadAllBytes(@"D:\Test\1\2.png");
 
+            var ssim = OpenCVService.GetSSIMSimilarity(img1, img2);
 
             var diff = OpenCVService.GetImageDifferential(img1, img2);
 

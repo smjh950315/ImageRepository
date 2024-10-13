@@ -49,8 +49,8 @@ extern "C" {
 	__EXPORT _CDECL(void*) cv_get_matrix(char* data, int length);
 	__EXPORT _CDECL(void) cv_free_matrix(void* matPtr);
 
-	__EXPORT _CDECL(double) cv_get_differential_by_mse(void* lmatptr, void* rmatptr);
-	__EXPORT _CDECL(double) cv_get_differential_by_ssim(void* lmatptr, void* rmatptr);
+	__EXPORT _CDECL(int) cv_get_differential_by_mse(void* lmatptr, void* rmatptr, double* presult);
+	__EXPORT _CDECL(int) cv_get_ssim_similarity(void* lmatptr, void* rmatptr, double* presult);
 	__EXPORT _CDECL(void*) cv_get_differential_bfmatch(void* lmatptr, void* rmatptr);
 	__EXPORT _CDECL(int) cv_encode_png_to_c_lang_malloc(void* matptr, void** result);
 #ifdef __cplusplus

@@ -184,19 +184,19 @@ static int get_cvtColor_flag_to_gray(int channel) {
 }
 
 template<class T>
-static T run_cv_gray_compute(void* lmatptr, void* rmatptr, T(*pfunc)(const cv::Mat&, const cv::Mat&), T failure_value, bool(*pvalidate)(const cv::Mat&, const cv::Mat&)) {
-	if (lmatptr != nullptr && rmatptr != nullptr) {
+static int run_cv_gray_compute(void* lmatptr, void* rmatptr, T* presult, T(*pfunc)(const cv::Mat&, const cv::Mat&), bool(*pvalidate)(const cv::Mat&, const cv::Mat&)) {
+	if (lmatptr != nullptr && rmatptr != nullptr && presult != nullptr) {
 		using Mat = cv::Mat;
 		life_time_handler lhs_handler{ nullptr, delete_cv_mat };
 		life_time_handler rhs_handler{ nullptr, delete_cv_mat };
 		Mat* plhs = (Mat*)lmatptr;
 		Mat* prhs = (Mat*)rmatptr;
 		if (pvalidate) {
-			if (!pvalidate(*plhs, *prhs)) return failure_value;
+			if (!pvalidate(*plhs, *prhs)) return -1;
 		}
 		if (plhs->channels() != 1) {
 			int flag = get_cvtColor_flag_to_gray(plhs->channels());
-			if (flag == -1) return failure_value;
+			if (flag == -1) return -1;
 			Mat* l_ori = (Mat*)lmatptr;
 			plhs = new Mat();
 			lhs_handler.ptr = plhs;
@@ -204,15 +204,16 @@ static T run_cv_gray_compute(void* lmatptr, void* rmatptr, T(*pfunc)(const cv::M
 		}
 		if (prhs->channels() != 1) {
 			int flag = get_cvtColor_flag_to_gray(prhs->channels());
-			if (flag == -1) return failure_value;
+			if (flag == -1) return -1;
 			Mat* r_ori = (Mat*)rmatptr;
 			prhs = new Mat();
 			rhs_handler.ptr = prhs;
 			cv::cvtColor(*r_ori, *prhs, flag);
 		}
-		return pfunc(*plhs, *prhs);
+		*presult = pfunc(*plhs, *prhs);
+		return 1;
 	}
-	return failure_value;
+	return -1;
 }
 
 static double computeMSE(const cv::Mat& image1, const cv::Mat& image2) {
@@ -271,7 +272,7 @@ static double computeSSIM(const cv::Mat& i1, const cv::Mat& i2) {
 	divide(t3, t1, ssim_map); // ssim_map = t3./t1;
 
 	cv::Scalar mssim = mean(ssim_map); // Average over the image
-	return (mssim.val[0] + mssim.val[1] + mssim.val[2]) / 3;
+	return (mssim.val[0] + mssim.val[1] + mssim.val[2]);
 }
 
 static cv::Mat showORB(const cv::Mat& img1, const cv::Mat& img2) {
@@ -319,14 +320,14 @@ __EXPORT _CDECL(void) cv_free_matrix(void* matptr)
 	delete_cv_mat(matptr);
 }
 
-__EXPORT _CDECL(double) cv_get_differential_by_mse(void* lmatptr, void* rmatptr)
+__EXPORT _CDECL(int) cv_get_differential_by_mse(void* lmatptr, void* rmatptr, double* presult)
 {
-	return run_cv_gray_compute(lmatptr, rmatptr, computeMSE, -1.0, is_same_size);
+	return run_cv_gray_compute(lmatptr, rmatptr, presult, computeMSE, is_same_size);
 }
 
-__EXPORT _CDECL(double) cv_get_differential_by_ssim(void* lmatptr, void* rmatptr)
+__EXPORT _CDECL(int) cv_get_ssim_similarity(void* lmatptr, void* rmatptr, double* presult)
 {
-	return run_cv_gray_compute(lmatptr, rmatptr, computeSSIM, -1.0, is_same_size);
+	return run_cv_gray_compute(lmatptr, rmatptr, presult, computeSSIM, is_same_size);
 }
 
 __EXPORT _CDECL(void*) cv_get_differential_bfmatch(void* lmatptr, void* rmatptr)
@@ -349,14 +350,14 @@ __EXPORT _CDECL(int) cv_encode_png_to_c_lang_malloc(void* matptr, void** result)
 		std::vector<uchar> buffer;
 		try {
 			cv::imencode(".png", *pmat, buffer);
-		} catch (const std::exception& ex){
+		} catch (const std::exception& ex) {
 			printf(ex.what());
 			return 0;
 		}
 		void* ptr = nullptr;
 		if (buffer.size() != 0) {
 			ptr = c_lang_malloc(buffer.size());
-		} 
+		}
 		if (ptr == nullptr) return 0;
 		*result = ptr;
 		memcpy(*result, buffer.data(), buffer.size());
