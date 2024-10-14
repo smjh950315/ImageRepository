@@ -33,7 +33,13 @@ namespace ImgRepo.Service.Implement
 
         public long GetIdByName<TAttribute>(string value) where TAttribute : class, IBasicEntityAttribute, new()
         {
-            return value.IsNullOrEmpty() ? 0 : this.CreateNewUnchecked<TAttribute>(value);
+            if (value.IsNullOrEmpty()) return 0;
+            var attr = this.m_dataSource.GetQueryable<TAttribute>().Select(x => new
+            {
+                Id = x.Id,
+                Value = x.Value
+            }).FirstOrDefault(x => x.Value == value);
+            return attr?.Id ?? this.CreateNewUnchecked<TAttribute>(value);
         }
 
         public IEnumerable<long> GetIdsByNames<TAttribute>(IEnumerable<string> values) where TAttribute : class, IBasicEntityAttribute, new()
