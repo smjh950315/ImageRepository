@@ -47,9 +47,7 @@ namespace ImgRepo.Web.Controllers
             });
 
             string tagStr = formProvider.GetValue("Tags").ToString();
-            string[] tags = tagStr.SplitNoThrow(',');
             string cateStr = formProvider.GetValue("Categories").ToString();
-            string[] categories = cateStr.SplitNoThrow(',');
             batchNewImageDto.SetTagsByUnsplitedString(tagStr);
             batchNewImageDto.SetCategoriesByUnsplitedString(cateStr);
 

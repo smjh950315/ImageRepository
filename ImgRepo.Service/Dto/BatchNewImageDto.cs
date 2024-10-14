@@ -49,6 +49,8 @@ namespace ImgRepo.Service.Dto
                 {
                     byte[] fileBytes = this.m_fileAccessService.GetFile($"image/{noInfoFile.Uri}");
                     if (fileBytes.IsNullOrEmpty()) continue;
+                    byte[] thumbnail = StbService.Resize(fileBytes, 256, 256);
+                    this.m_fileAccessService.SaveFile($"image/{noInfoFile.Uri}_thumb", thumbnail);
                     ImageHelperSharp.Common.ImInfo imInfo = StbService.GetImageFileInfo(fileBytes);
                     noInfoFile.Format = imInfo.Format;
                     noInfoFile.Width = imInfo.Size.Width;

@@ -95,16 +95,15 @@ namespace ImgRepo.Web.StreamFileHelper
         private static Encoding? GetEncoding(MultipartSection section)
         {
             bool hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out MediaTypeHeaderValue? mediaType);
-            if (mediaType == null) return null;
             // UTF-7 is insecure and should not be honored. UTF-8 will succeed in
             // most cases.
 #pragma warning disable SYSLIB0001 // 類型或成員已經過時
-            if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
+            if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType?.Encoding))
             {
                 return Encoding.UTF8;
             }
 #pragma warning restore SYSLIB0001 // 類型或成員已經過時
-            return mediaType.Encoding;
+            return mediaType?.Encoding;
         }
     }
 }

@@ -78,7 +78,7 @@ namespace ImgRepo.Service.CommonService
             IQueryable<TRecord> records = this.m_dataSource.GetQueryable<TRecord>();
             IQueryable<TAttribute> attrs = this.m_dataSource.GetQueryable<TAttribute>();
             return records
-                .Where(r => r.AttrType == attrTypeId)
+                .Where(r => r.AttrType == attrTypeId && r.ObjectId == objectId)
                 .Join(attrs, r => r.AttrId, a => a.Id, (r, a) => new
                 {
                     r = r,
