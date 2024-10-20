@@ -20,10 +20,7 @@ namespace ImageHelperSharp
         {
             if (matPtr != IntPtr.Zero)
             {
-                unsafe
-                {
-                    OpenCVInterop.cv_free_matrix((void*)matPtr);
-                }
+                unsafe { OpenCVInterop.cv_free_matrix((void*)matPtr); }
                 matPtr = IntPtr.Zero;
             }
         }
@@ -69,10 +66,7 @@ namespace ImageHelperSharp
             double differentialValue = -1;
             try
             {
-                unsafe
-                {
-                    success = OpenCVInterop.cv_get_differential_by_mse((void*)lmat, (void*)rmat, ref differentialValue);
-                }
+                unsafe { success = OpenCVInterop.cv_get_differential_by_mse((void*)lmat, (void*)rmat, ref differentialValue); }
             }
             catch
             {
@@ -104,10 +98,7 @@ namespace ImageHelperSharp
             double differentialValue = -1;
             try
             {
-                unsafe
-                {
-                    success = OpenCVInterop.cv_get_ssim_similarity((void*)lmat, (void*)rmat, ref differentialValue);
-                }
+                unsafe { success = OpenCVInterop.cv_get_ssim_similarity((void*)lmat, (void*)rmat, ref differentialValue); }
             }
             catch
             {
@@ -124,36 +115,31 @@ namespace ImageHelperSharp
 
         public static byte[]? GetPatternMatchImage(byte[] limage, byte[] rimage)
         {
+            IntPtr lmat = cv_get_matrix(limage);
+            IntPtr rmat = cv_get_matrix(rimage);
+            if (lmat == IntPtr.Zero || rmat == IntPtr.Zero)
+            {
+                cv_free_matrix_if_existing(ref lmat);
+                cv_free_matrix_if_existing(ref rmat);
+                throw new Exception("Failed to get matrix");
+            }
+
+            byte[]? result;
+
             unsafe
             {
                 void* matPtr = null;
                 using (LifeTimeHandler lifeTimeHandler = new LifeTimeHandler(&matPtr, &OpenCVInterop.cv_free_matrix))
                 {
-                    IntPtr lmat = cv_get_matrix(limage);
-                    IntPtr rmat = cv_get_matrix(rimage);
-
-                    if (lmat == IntPtr.Zero || rmat == IntPtr.Zero)
-                    {
-                        cv_free_matrix_if_existing(ref lmat);
-                        cv_free_matrix_if_existing(ref rmat);
-                        throw new Exception("Failed to get matrix");
-                    }
-
-                    byte[]? result = null;
-
                     matPtr = OpenCVInterop.cv_get_differential_bfmatch((void*)lmat, (void*)rmat);
-
-                    if (matPtr != null)
-                    {
-                        result = cv_mat_to_png_bytes((IntPtr)matPtr);
-                    }
-
-                    cv_free_matrix_if_existing(ref lmat);
-                    cv_free_matrix_if_existing(ref rmat);
-
-                    return result;
+                    result = matPtr != null ? cv_mat_to_png_bytes((IntPtr)matPtr) : null;
                 }
             }
+
+            cv_free_matrix_if_existing(ref lmat);
+            cv_free_matrix_if_existing(ref rmat);
+
+            return result;
         }
     }
 }
